@@ -1,0 +1,275 @@
+# codex.toml
+
+model = "gpt-5.6-sol"
+model_verbosity = "low"
+model_reasoning_effort = "max"
+hide_agent_reasoning = true
+suppress_unstable_features_warning = true
+
+# 通知（Linux例：成功音）。macOSなら:
+# notify = ["bash", "-lc", "afplay /System/Library/Sounds/Ping.aiff"]
+notify = ["bash", "-lc", "paplay /usr/share/sounds/freedesktop/stereo/complete.oga || aplay /usr/share/sounds/alsa/Front_Center.wav || true"]
+personality = "pragmatic"
+
+tools.web_search = true
+service_tier = "default"
+plan_mode_reasoning_effort = "max"
+# [tools.web_search]
+# enabled = true
+
+[sandbox_workspace_write]
+network_access = true
+
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+# Figma MCP はローカルの Figma MCP サーバー起動時だけ有効化する。
+# 再有効化: codex mcp add figma -- npx -y mcp-remote http://127.0.0.1:3845/sse
+# [mcp_servers.figma]
+# command = "npx"
+# args = ["-y", "mcp-remote", "http://127.0.0.1:3845/sse"]
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+# Notion MCP は OAuth ログイン済みで使うときだけ有効化する。
+# 再有効化: codex mcp add notion --url https://mcp.notion.com/mcp
+# 認証: codex mcp login notion
+# [mcp_servers.notion]
+# url = "https://mcp.notion.com/mcp"
+
+# ===== 信頼済みプロジェクト =====
+[projects."/home/sota411"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/kadai"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/SIGNATE"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/SIGNATE/chrome-extension"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Tooth-ID-ML"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/SIGNATE_compe"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/kadai/H2/Monday/Java/jsp-kadai"]
+trust_level = "trusted"
+
+[projects."/opt/android-sdk/cmdline-tools"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/MITOU"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Obsidian Vault"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Obsidian Vault/就活"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents"]
+trust_level = "trusted"
+
+[projects."/home/sota411/AndroidStudioProjects/Janken"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/group_practice"]
+trust_level = "trusted"
+
+[projects."/home/sota411/AndroidStudioProjects"]
+trust_level = "trusted"
+
+[projects."/home/sota411/AndroidStudioProjects/Order"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Codex/2026-06-04/ai-20-1-2-mece-3"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Codex/2026-06-04/ai-1-2-mece-3-4"]
+trust_level = "trusted"
+
+[projects."/home/sota411/.agents/skills/pdf-latex"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/Obsidian Vault/キャリア設計"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/neec2/my-product"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/LinkZip"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/BusinessKentei2"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2024/sota411.github.io"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/hopscotch/MineCode"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/odonto_auth"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/GPT-5.6_test"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/codex-attention"]
+trust_level = "trusted"
+
+[notice]
+hide_gpt5_1_migration_prompt = true
+"hide_gpt-5.1-codex-max_migration_prompt" = true
+hide_full_access_warning = true
+hide_rate_limit_model_nudge = true
+fast_default_opt_out = true
+
+[notice.model_migrations]
+"gpt-5.1-codex-max" = "gpt-5.2-codex"
+"gpt-5.3-codex" = "gpt-5.5"
+"gpt-5.4" = "gpt-5.5"
+
+[features]
+multi_agent = true
+goals = true
+hooks = true
+realtime_conversation = true
+default_mode_request_user_input = true
+
+[plugins."github@openai-curated"]
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."notion@openai-curated"]
+# Notion プラグインを使う場合は true に戻す。
+enabled = false
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
+[plugins."pm-toolkit@pm-skills"]
+enabled = false
+
+[plugins."pm-product-strategy@pm-skills"]
+enabled = true
+
+[plugins."pm-product-discovery@pm-skills"]
+enabled = true
+
+[plugins."pm-market-research@pm-skills"]
+enabled = true
+
+[plugins."pm-data-analytics@pm-skills"]
+enabled = false
+
+[plugins."pm-marketing-growth@pm-skills"]
+enabled = true
+
+[plugins."pm-go-to-market@pm-skills"]
+enabled = true
+
+[plugins."pm-execution@pm-skills"]
+enabled = false
+
+[plugins."pm-ai-shipping@pm-skills"]
+enabled = false
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+"gpt-5.6-sol" = 4
+
+[[hooks.PreToolUse]]
+matcher = "^(Bash|apply_patch)$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_env_guard.py" pre-tool-use'
+timeout = 10
+statusMessage = "checking env files"
+
+[[hooks.UserPromptSubmit]]
+
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_readme_guard.py" start'
+timeout = 10
+statusMessage = "recording README baseline"
+
+[[hooks.Stop]]
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_memo_guard.py" stop'
+timeout = 10
+statusMessage = "checking README and queueing memo"
+
+[hooks.state]
+
+[hooks.state."/home/sota411/.codex/config.toml:pre_tool_use:0:0"]
+trusted_hash = "sha256:5a1905f360dc5ee918ff4b142ee61e46210bec5a393dbce9199d0b5fbb2cfdb0"
+
+[hooks.state."/home/sota411/.codex/config.toml:user_prompt_submit:0:0"]
+trusted_hash = "sha256:1fc8c4c67b9e7fdb3f4f355f643cc6c73d0483064dd9163f34a533e33f427f69"
+
+[hooks.state."/home/sota411/.codex/config.toml:stop:0:0"]
+trusted_hash = "sha256:6af599ca1f54c81cb752b53137449467f523ec5a41497dda046269f08dd35555"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-07-09T03:34:06Z"
+source_type = "local"
+source = "/home/sota411/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[marketplaces.openai-bundled]
+last_updated = "2026-07-16T00:23:10Z"
+source_type = "local"
+source = "/home/sota411/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.pm-skills]
+last_updated = "2026-07-16T02:42:26Z"
+last_revision = "18468a95b427e70e258b51389796367c6f684e7d"
+source_type = "git"
+source = "https://github.com/phuryn/pm-skills.git"
+
+[agents]
+max_threads = 12
+max_depth = 1
+
+[desktop]
+followUpQueueMode = "queue"
+conversationDetailMode = "STEPS_COMMANDS"

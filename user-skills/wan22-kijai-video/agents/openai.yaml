@@ -1,0 +1,4 @@
+interface:
+  display_name: "Wan2.2 Kijai Video"
+  short_description: "Kijai版Wan2.2動画生成を安全に実行・再開・診断"
+  default_prompt: "$wan22-kijai-video を使って、Wan2.2 Kijaiの動画生成を準備・実行してください。"
