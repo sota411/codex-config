@@ -1,8 +1,8 @@
 # codex.toml
 
-model = "gpt-5.6-sol"
+model = "gpt-5.6-luna"
 model_verbosity = "low"
-model_reasoning_effort = "max"
+model_reasoning_effort = "medium"
 hide_agent_reasoning = true
 suppress_unstable_features_warning = true
 
@@ -134,6 +134,9 @@ trust_level = "trusted"
 [projects."/home/sota411/Documents/project/2026/codex-attention"]
 trust_level = "trusted"
 
+[projects."/home/sota411/Documents/studyTS"]
+trust_level = "trusted"
+
 [notice]
 hide_gpt5_1_migration_prompt = true
 "hide_gpt-5.1-codex-max_migration_prompt" = true
@@ -152,6 +155,7 @@ goals = true
 hooks = true
 realtime_conversation = true
 default_mode_request_user_input = true
+memories = true
 
 [plugins."github@openai-curated"]
 
@@ -180,9 +184,6 @@ enabled = true
 [plugins."visualize@openai-bundled"]
 enabled = true
 
-[plugins."browser@openai-bundled"]
-enabled = true
-
 [plugins."pm-toolkit@pm-skills"]
 enabled = false
 
@@ -209,6 +210,9 @@ enabled = false
 
 [plugins."pm-ai-shipping@pm-skills"]
 enabled = false
+
+[plugins."browser@openai-bundled"]
+enabled = true
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
@@ -251,12 +255,12 @@ trusted_hash = "sha256:1fc8c4c67b9e7fdb3f4f355f643cc6c73d0483064dd9163f34a533e33
 trusted_hash = "sha256:6af599ca1f54c81cb752b53137449467f523ec5a41497dda046269f08dd35555"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-07-09T03:34:06Z"
+last_updated = "2026-07-16T07:35:57Z"
 source_type = "local"
 source = "/home/sota411/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-07-16T00:23:10Z"
+last_updated = "2026-07-17T03:29:04Z"
 source_type = "local"
 source = "/home/sota411/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
@@ -273,3 +277,7 @@ max_depth = 1
 [desktop]
 followUpQueueMode = "queue"
 conversationDetailMode = "STEPS_COMMANDS"
+
+[memories]
+generate_memories = true
+use_memories = true
