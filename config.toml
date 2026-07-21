@@ -1,8 +1,8 @@
 # codex.toml
 
-model = "gpt-5.6-luna"
+model = "gpt-5.6-sol"
 model_verbosity = "low"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "xhigh"
 hide_agent_reasoning = true
 suppress_unstable_features_warning = true
 
@@ -211,6 +211,9 @@ enabled = false
 [plugins."pm-ai-shipping@pm-skills"]
 enabled = false
 
+[plugins."chrome@openai-bundled"]
+enabled = true
+
 [plugins."browser@openai-bundled"]
 enabled = true
 
@@ -260,7 +263,7 @@ source_type = "local"
 source = "/home/sota411/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-07-17T03:29:04Z"
+last_updated = "2026-07-20T13:18:43Z"
 source_type = "local"
 source = "/home/sota411/.codex/.tmp/bundled-marketplaces/openai-bundled"
 

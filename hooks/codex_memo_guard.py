@@ -238,7 +238,7 @@ def run_stop() -> int:
         return 0
     readme_stop_reason = codex_readme_guard.evaluate_turn_stop(payload)
     if readme_stop_reason is not None:
-        codex_readme_guard.print_stop_decision(readme_stop_reason)
+        codex_readme_guard.print_block_decision(readme_stop_reason)
         return 0
     memo_path = memo_path_for_payload(payload)
     if not memo_path.is_file():
