@@ -109,13 +109,14 @@ class ReadmeGuardTest(unittest.TestCase):
         self,
         root: Path,
         state_dir: Path,
+        **extra: object,
     ) -> subprocess.CompletedProcess[str]:
         env = os.environ.copy()
         env["CODEX_README_GUARD_STATE_DIR"] = str(state_dir)
         env["README_HOOK_MAX_CHANGED_LINES"] = "50"
         return subprocess.run(
             [sys.executable, str(MEMO_SCRIPT), "stop"],
-            input=json.dumps(self.payload(root, "Stop")),
+            input=json.dumps(self.payload(root, "Stop", **extra)),
             text=True,
             cwd=root,
             env=env,
@@ -123,6 +124,17 @@ class ReadmeGuardTest(unittest.TestCase):
             stderr=subprocess.PIPE,
             check=False,
         )
+
+    def assert_readme_blocked(
+        self,
+        result: subprocess.CompletedProcess[str],
+    ) -> dict[str, object]:
+        self.assertEqual(result.returncode, 0, result.stderr)
+        output = json.loads(result.stdout)
+        self.assertEqual(output["decision"], "block")
+        self.assertIn("README", output["reason"])
+        self.assertNotIn("continue", output)
+        return output
 
     def test_allows_small_main_turn_change(self) -> None:
         with (
@@ -154,10 +166,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
             result = self.stop_turn(root, Path(state_dir))
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            output = json.loads(result.stdout)
-            self.assertFalse(output["continue"])
-            self.assertIn("README", output["stopReason"])
+            self.assert_readme_blocked(result)
 
     def test_allows_large_change_with_readme_update(self) -> None:
         with (
@@ -177,6 +186,226 @@ class ReadmeGuardTest(unittest.TestCase):
 
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(result.stdout, "")
+
+    def test_allows_large_change_with_explicit_no_update_decision(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            state = Path(state_dir)
+            self.init_repo(root)
+            self.start_turn(root, state)
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                state,
+                last_assistant_message=(
+                    "実装と検証が完了しました。\n\n"
+                    "README更新判断: 不要\n"
+                    "理由: 変更はテスト内部の整理だけで、利用方法と外部動作は変わりません。"
+                ),
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "")
+            self.assertEqual(list(state.rglob("state.json")), [])
+
+    def test_blocks_no_update_decision_without_reason(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message="README更新判断: 不要",
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_with_vague_reason(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: 変更なし"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_with_placeholder_reason(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: <READMEを更新しない具体的な理由>"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_before_following_text(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: 変更はテスト内部の整理だけで、利用方法と外部動作は変わりません。\n\n"
+                    "ただし、READMEは後から更新します。"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_inside_unclosed_code_fence(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "宣言例です。\n\n```text\n"
+                    "README更新判断: 不要\n"
+                    "理由: 変更はテスト内部の整理だけで、利用方法と外部動作は変わりません。"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_after_shorter_inner_fence(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "````markdown\n```\n"
+                    "README更新判断: 不要\n"
+                    "理由: 変更はテスト内部の整理だけで、利用方法と外部動作は変わりません。"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_no_update_decision_with_generic_reason(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: README更新は必要ありません。"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
+
+    def test_blocks_generic_reason_with_punctuation_variation(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            self.init_repo(root)
+            self.start_turn(root, Path(state_dir))
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            result = self.stop_turn(
+                root,
+                Path(state_dir),
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: README更新は、必要ありません。"
+                ),
+            )
+
+            self.assert_readme_blocked(result)
 
     def test_detects_changes_committed_during_turn(self) -> None:
         with (
@@ -202,8 +431,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
             result = self.stop_turn(root, Path(state_dir))
 
-            output = json.loads(result.stdout)
-            self.assertFalse(output["continue"])
+            self.assert_readme_blocked(result)
 
     def test_ignores_paths_dirty_before_turn(self) -> None:
         with (
@@ -356,7 +584,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
             result = self.stop_turn(root, Path(state_dir))
 
-            self.assertFalse(json.loads(result.stdout)["continue"])
+            self.assert_readme_blocked(result)
 
     def test_dirty_readme_updated_during_turn_satisfies_guard(self) -> None:
         with (
@@ -396,8 +624,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
             result = self.stop_turn(root, Path(state_dir))
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertFalse(json.loads(result.stdout)["continue"])
+            self.assert_readme_blocked(result)
 
     def test_handles_tracked_filename_containing_newline(self) -> None:
         with (
@@ -425,8 +652,7 @@ class ReadmeGuardTest(unittest.TestCase):
 
             result = self.stop_turn(root, Path(state_dir))
 
-            self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertFalse(json.loads(result.stdout)["continue"])
+            self.assert_readme_blocked(result)
 
     def test_plan_mode_does_not_create_turn_state(self) -> None:
         with (
@@ -527,11 +753,36 @@ class ReadmeGuardTest(unittest.TestCase):
 
             blocked = self.run_memo_stop(root, state)
 
-            self.assertEqual(blocked.returncode, 0, blocked.stderr)
-            self.assertFalse(json.loads(blocked.stdout)["continue"])
+            self.assert_readme_blocked(blocked)
 
             (root / "README.md").write_text("# Test\n\nUpdated.\n", encoding="utf-8")
             allowed = self.run_memo_stop(root, state)
+
+            self.assertEqual(allowed.returncode, 0, allowed.stderr)
+            self.assertEqual(allowed.stdout, "")
+
+    def test_memo_stop_accepts_explicit_no_update_decision(self) -> None:
+        with (
+            tempfile.TemporaryDirectory() as root_dir,
+            tempfile.TemporaryDirectory() as state_dir,
+        ):
+            root = Path(root_dir)
+            state = Path(state_dir)
+            self.init_repo(root)
+            self.start_turn(root, state)
+            (root / "app.txt").write_text(
+                "".join(f"line {number}\n" for number in range(60)),
+                encoding="utf-8",
+            )
+
+            allowed = self.run_memo_stop(
+                root,
+                state,
+                last_assistant_message=(
+                    "README更新判断: 不要\n"
+                    "理由: 内部テストだけを整理し、利用者向けの操作と出力は変えていません。"
+                ),
+            )
 
             self.assertEqual(allowed.returncode, 0, allowed.stderr)
             self.assertEqual(allowed.stdout, "")

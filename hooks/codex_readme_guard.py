@@ -11,6 +11,7 @@ import stat
 import subprocess
 import sys
 import time
+import unicodedata
 from pathlib import Path
 
 
@@ -19,6 +20,21 @@ DEFAULT_BINARY_FILE_WEIGHT = 1000
 DEFAULT_STATE_DIR = Path("/tmp/codex-readme-guard")
 DEFAULT_STATE_MAX_AGE_SECONDS = 24 * 60 * 60
 TEMPLATE_ENV_SUFFIXES = (".example", ".sample", ".template", ".dist")
+README_NO_UPDATE_DECISION = "README更新判断: 不要"
+README_NO_UPDATE_REASON_PREFIX = "理由:"
+README_NO_UPDATE_MIN_REASON_LENGTH = 12
+README_NO_UPDATE_REASON_PLACEHOLDER = "<READMEを更新しない具体的な理由>"
+README_NO_UPDATE_GENERIC_REASONS = frozenset(
+    {
+        "readme更新は必要ありません",
+        "readmeの更新は必要ありません",
+        "readmeを更新する必要はありません",
+        "readme更新不要",
+        "readme更新不要です",
+        "readmeの更新は不要です",
+        "readme更新は不要です",
+    }
+)
 
 
 class GuardError(RuntimeError):
@@ -71,7 +87,7 @@ def check_turn_stop(payload: dict[str, object]) -> int:
     require_event(payload, "Stop")
     reason = evaluate_turn_stop(payload)
     if reason is not None:
-        print_stop_decision(reason)
+        print_block_decision(reason)
     return 0
 
 
@@ -123,7 +139,11 @@ def evaluate_turn_stop(payload: dict[str, object]) -> str | None:
         DEFAULT_MAX_CHANGED_LINES,
     )
 
-    if changed_lines < threshold or any(is_readme_path(path) for path in changes):
+    if (
+        changed_lines < threshold
+        or any(is_readme_path(path) for path in changes)
+        or explicit_no_readme_update_reason(payload) is not None
+    ):
         remove_state(payload)
         return None
 
@@ -131,20 +151,90 @@ def evaluate_turn_stop(payload: dict[str, object]) -> str | None:
     reason = (
         "README freshness check failed at main-agent completion. "
         f"This turn changed {changed_lines} lines (threshold: {threshold}) "
-        "without changing a README. Review the full turn diff, update the relevant "
-        "README when behavior or usage changed, then complete the turn again.\n"
+        "without changing a README. Review the full turn diff. Update the relevant "
+        "README when behavior, usage, or documented project status changed. If no "
+        "README update is needed, use the two lines below as the final two lines of "
+        "the response, outside a code block. Replace the placeholder with a specific "
+        "reason of at least 12 characters:\n"
+        f"{README_NO_UPDATE_DECISION}\n"
+        f"{README_NO_UPDATE_REASON_PREFIX} {README_NO_UPDATE_REASON_PLACEHOLDER}\n"
         f"Changed paths:\n{changed_preview}"
     )
     return reason
 
 
-def print_stop_decision(reason: str) -> None:
+def explicit_no_readme_update_reason(payload: dict[str, object]) -> str | None:
+    raw_message = payload.get("last_assistant_message")
+    if raw_message is None:
+        return None
+    if not isinstance(raw_message, str):
+        raise GuardError("last_assistant_message must be a string or null")
+
+    lines = raw_message.rstrip().splitlines()
+    if len(lines) < 2 or lines[-2] != README_NO_UPDATE_DECISION:
+        return None
+    if is_inside_markdown_fence(lines, len(lines) - 2):
+        return None
+
+    reason_line = lines[-1]
+    if not reason_line.startswith(README_NO_UPDATE_REASON_PREFIX):
+        return None
+    reason = reason_line.removeprefix(README_NO_UPDATE_REASON_PREFIX).strip()
+    if (
+        len(reason) < README_NO_UPDATE_MIN_REASON_LENGTH
+        or reason == README_NO_UPDATE_REASON_PLACEHOLDER
+        or normalize_no_update_reason(reason) in README_NO_UPDATE_GENERIC_REASONS
+    ):
+        return None
+    return reason
+
+
+def is_inside_markdown_fence(lines: list[str], target_index: int) -> bool:
+    open_fence: tuple[str, int] | None = None
+    for line in lines[:target_index]:
+        fence = markdown_fence_run(line)
+        if fence is None:
+            continue
+        marker, length, remainder = fence
+        if open_fence is None:
+            open_fence = (marker, length)
+            continue
+        open_marker, open_length = open_fence
+        if marker == open_marker and length >= open_length and remainder.strip() == "":
+            open_fence = None
+    return open_fence is not None
+
+
+def markdown_fence_run(line: str) -> tuple[str, int, str] | None:
+    indentation = len(line) - len(line.lstrip(" "))
+    if indentation > 3:
+        return None
+    stripped = line[indentation:]
+    if stripped == "" or stripped[0] not in {"`", "~"}:
+        return None
+    marker = stripped[0]
+    length = len(stripped) - len(stripped.lstrip(marker))
+    if length < 3:
+        return None
+    return marker, length, stripped[length:]
+
+
+def normalize_no_update_reason(reason: str) -> str:
+    normalized = unicodedata.normalize("NFKC", reason).casefold()
+    return "".join(
+        character
+        for character in normalized
+        if not character.isspace()
+        and not unicodedata.category(character).startswith("P")
+    )
+
+
+def print_block_decision(reason: str) -> None:
     print(
         json.dumps(
             {
-                "continue": False,
-                "stopReason": reason,
-                "systemMessage": reason,
+                "decision": "block",
+                "reason": reason,
             },
             ensure_ascii=False,
         )

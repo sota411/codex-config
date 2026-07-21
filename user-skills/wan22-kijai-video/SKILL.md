@@ -28,6 +28,13 @@ description: Wan2.2 I2VをKijai WanVideoWrapperとLightX2V 4-step LoRAで安全�
 - 実行前にrunnerの `dry-run`、実行時は `run-beat --beat N` を使う。中断後はjournalとComfyUI historyを照合し、submission outcomeが不明なら `--resume` で再送しない。
 - 完了後は21枚のraw frames、local QA、journalを確認して報告する。承認コマンドはユーザーが明示的に判断した場合だけ実行する。
 
+## RTX 3080 10 GB の品質優先プロファイル
+
+- モデルはWanVideoWrapperのFP8 scaled high/lowモデルを使う。Kaggle向けQ4 GGUFへ置き換えない。
+- RTX 3080では22-block swap、CPU/offload device、SDPAを使う。個別に承認されたベンチマークなしに、torch compile、SageAttention、TeaCacheを有効にしない。
+- 構図・人物の歩行・カメラ移動の確認は、`preview`プロファイル（832x480、21フレーム、1 beat）だけで行う。previewは画質を捨てる設定ではなく、同じFP8・LightX2V 4-step契約で試行回数を減らすための設定である。
+- previewの人間によるmotion auditと明示承認後だけ、`production`プロファイル（1280x720、4 beatsを81フレームへ結合）を開始する。完成動画は16 fpsで生成し、32 fpsが必要な場合は最終承認後にフレーム補間する。
+
 ## Kaggle
 
 Kaggle artifactはモデルとKijai nodeのpreflight専用であり、現在は動画生成runnerではない。Kaggle生成を約束・実行しない。private `wan22-i2v-models` inputが未接続なら、必要なlayoutを示して停止する。
