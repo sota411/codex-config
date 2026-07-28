@@ -41,6 +41,8 @@ For GitHub PR review comments, do not use this skill as the primary workflow. Us
 
 Use this only when the current session allows subagents and the scope is large enough to benefit from independent passes.
 
+Use the `reviewer_deep` custom agent profile for every delegated review pass. Do not substitute an unnamed or default agent that inherits the parent model.
+
 Run focused reviewers in parallel by concern:
 
 - Correctness and regressions
