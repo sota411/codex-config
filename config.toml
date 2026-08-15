@@ -217,6 +217,9 @@ enabled = true
 [plugins."browser@openai-bundled"]
 enabled = true
 
+[plugins."diagram-design@diagram-design"]
+enabled = true
+
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 "gpt-5.6-sol" = 4
@@ -272,6 +275,12 @@ last_updated = "2026-07-16T02:42:26Z"
 last_revision = "18468a95b427e70e258b51389796367c6f684e7d"
 source_type = "git"
 source = "https://github.com/phuryn/pm-skills.git"
+
+[marketplaces.diagram-design]
+last_updated = "2026-08-15T00:46:01Z"
+last_revision = "09df49d8d1a1c7fb2efdfcdc7a2a0713534350a6"
+source_type = "git"
+source = "https://github.com/cathrynlavery/diagram-design.git"
 
 [agents]
 max_threads = 12

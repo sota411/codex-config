@@ -1,6 +1,6 @@
 ---
 name: pdf-latex
-description: Create non-official Tetsuryoku-style Japanese study handout or unit-based problem-set PDFs with LuaLaTeX, including worked examples, practice problems, one-point checkpoints, teacher/student dialogue explanations, and optional drawio-made diagram images. Use only when the user explicitly invokes `$pdf-latex` or clearly asks to use this skill for a JIS B5, boxed-problem, reference-book-like LaTeX handout PDF; do not implicitly apply it to ordinary LaTeX, generic PDFs, resumes, reports, or documents.
+description: Create non-official Tetsuryoku-style Japanese study handout or unit-based problem-set PDFs with LuaLaTeX, including worked examples, practice problems, one-point checkpoints, teacher/student dialogue explanations, and optional diagram-design figures. Use only when the user explicitly invokes `$pdf-latex` or clearly asks to use this skill for a JIS B5, boxed-problem, reference-book-like LaTeX handout PDF; do not implicitly apply it to ordinary LaTeX, generic PDFs, resumes, reports, or documents.
 ---
 
 # PDF LaTeX
@@ -20,7 +20,7 @@ The visual style is non-official and only "Tetsuryoku-style". Do not claim affil
 5. Put practice explanations immediately after the corresponding problem when an answer or solution is included. Use `\answerspace[n]` when the reader needs space to solve or annotate.
 6. Use `handoutcolumns` only for dense explanation or drills. Do not put many unrelated problems into one giant box.
 7. Use `\code{...}` for API paths, table names, columns, and snake_case so long code-like text remains visually distinct.
-8. When APIs, DBs, UML, data flow, state changes, or architecture are easier to understand visually, use the `drawio` skill to create an editable `.drawio` plus a PDF or PNG export. The figure must explain the problem, not merely illustrate the topic: add numbered labels or callouts that map to the answer steps.
+8. When APIs, DBs, UML, data flow, state changes, or architecture are easier to understand visually, use the `diagram-design` skill to create a self-contained HTML figure and request a scale-3 PNG export for TeX. Keep both files near the TeX output. The figure must explain the problem, not merely illustrate the topic: add numbered labels or callouts that map to the answer steps.
 9. Treat `document_body` as TeX source. Use `--plain-text` only for the legacy flat-field interface.
 10. Generate the PDF with `scripts/create_pdf_latex.py`.
 11. Let the script run `lualatex` twice. Do not skip or hide compile errors.
@@ -85,7 +85,7 @@ Use these macros in `document_body`:
 \end{practiceproblem}
 \answerspace[4]
 
-\diagramimage[APIとDBの関係]{figures/api-db-flow.pdf}
+\diagramimage[APIとDBの関係]{figures/api-db-flow.png}
 
 \begin{solutionblock}[図の読み方]
 図1の番号1はリクエスト送信, 矢印2はDB参照を表す. 本文の解答手順1,2と対応させて読む.
@@ -159,11 +159,11 @@ For possible line-label or annotation collisions, add `--check-line-text`. This 
 - Break long material into short blocks with visible labels. Avoid one large problem box containing many unrelated questions.
 - Keep API paths and identifiers in `\code{...}`. Put HTTP methods outside the macro, such as `POST \code{/conversations}`. If a path is too long, rewrite the prose or split the example rather than allowing unreadable wrapping.
 - Do not add visible meta sections such as `このプリントの根拠`, `作成根拠`, `公式根拠`, `Source Notes`, `Sources`, or `References` unless the user explicitly requests them. Keep source checks and reasoning in the working notes, not in the learner-facing PDF.
-- Do not add decorative diagrams. Use `drawio` diagrams only when relationships, structure, branching, or data movement become clearer than prose.
+- Do not add decorative diagrams. Use `diagram-design` figures only when relationships, structure, branching, or data movement become clearer than prose.
 - A diagram must be coupled to the exercise. It should answer one of these learner questions: "where should I look?", "what happens first?", "which component is responsible?", or "why is this answer correct?"
 - Every inserted diagram must be followed or preceded by a nearby short `keypoints` or `solutionblock` section labeled `図の読み方`, `図解`, `図から分かること`, `読み取り方`, or `解答手順`. The body of that block must specifically explain the figure numbers, arrows, steps, responsibilities, or flow; a label-only or one-word explanation is not enough. The generator rejects each `\diagramimage` that is not coupled to such a nearby explanation block.
 - Prefer diagrams with numbered steps, responsibility labels, and answer-relevant arrows. Avoid generic system overviews that can be removed without changing the explanation.
-- For drawio diagrams, keep the editable `.drawio` near the TeX output and insert a LaTeX-readable PDF or PNG export. Prefer PDF for vector quality; use PNG only when PDF export is unavailable.
+- For `diagram-design` figures, keep the self-contained `.html` near the TeX output and insert the scale-3 PNG export. Keep an exported SVG alongside it when a vector source is useful, but insert SVG directly only when the TeX project already has an established SVG pipeline.
 - For TikZ or inserted diagram figures, avoid connector lines that pass through node interiors. If a connector must travel across the figure, route it around the outside using explicit bend points or split the figure. Validate the final PDF with `scripts/check_pdf_layout_collisions.py`; successful compilation alone is not sufficient evidence that a diagram is visually usable.
 - Prefer short paragraphs. Use itemize/enumerate only when the list structure matters.
 - The layout follows general textbook readability findings: visual hierarchy and typographic cues help learning, and clear design favors headings, whitespace, and controlled line length.
