@@ -22,6 +22,7 @@ CODEX_ALLOWED_ROOT_FILES = {
     "bootstrap.sh",
     "config.toml",
 }
+CODEX_ALLOWED_ROOT_SUFFIXES = (".config.toml",)
 CODEX_ALLOWED_DIRECTORIES = (
     "agents",
     "git-hooks",
@@ -654,6 +655,8 @@ def is_allowed_codex_path(path: str) -> bool:
         return False
     normalized = candidate.as_posix()
     if normalized in CODEX_ALLOWED_ROOT_FILES:
+        return True
+    if candidate.parent == Path(".") and candidate.name.endswith(CODEX_ALLOWED_ROOT_SUFFIXES):
         return True
     return any(
         normalized == directory or normalized.startswith(f"{directory}/")

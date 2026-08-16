@@ -8,3 +8,9 @@ developer_instructions = """
 好みの変更や依頼範囲外の再設計を要求しない。
 レビューを別エージェントへ再委譲せず、コードも変更しない。
 """
+
+# サブエージェント終了後に残留するローカル MCP を起動しない。
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+enabled = false

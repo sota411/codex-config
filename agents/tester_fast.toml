@@ -8,3 +8,9 @@ developer_instructions = """
 実装修正は依頼に含まれる場合だけ行い、結果は成功件数、失敗点、再現コマンド、参照箇所に絞る。
 長い出力を全文返さず、最初の原因と次の判断材料を返す。
 """
+
+# サブエージェント終了後に残留するローカル MCP を起動しない。
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+enabled = false

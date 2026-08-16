@@ -5,6 +5,8 @@ model_verbosity = "low"
 model_reasoning_effort = "xhigh"
 hide_agent_reasoning = true
 suppress_unstable_features_warning = true
+# WezTerm では ASCII 入力を貼り付け候補として一時保留せず、受信時に挿入する。
+disable_paste_burst = true
 
 # 通知（Linux例：成功音）。macOSなら:
 # notify = ["bash", "-lc", "afplay /System/Library/Sounds/Ping.aiff"]
@@ -23,10 +25,12 @@ network_access = true
 [mcp_servers.chrome-devtools]
 command = "npx"
 args = ["chrome-devtools-mcp@latest"]
+# stdio MCP はサブエージェントごとに複製されるため、通常は停止する。
+# 必要なセッションだけ `codex -p devtools` で有効化する。
+enabled = false
 
 [mcp_servers.context7]
-command = "npx"
-args = ["-y", "@upstash/context7-mcp@latest"]
+url = "https://mcp.context7.com/mcp"
 
 # Figma MCP はローカルの Figma MCP サーバー起動時だけ有効化する。
 # 再有効化: codex mcp add figma -- npx -y mcp-remote http://127.0.0.1:3845/sse
@@ -179,7 +183,8 @@ enabled = true
 enabled = true
 
 [plugins."sites@openai-bundled"]
-enabled = true
+# Sites の stdio MCP は必要なセッションだけ `codex -p sites` で起動する。
+enabled = false
 
 [plugins."visualize@openai-bundled"]
 enabled = true

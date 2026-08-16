@@ -383,6 +383,7 @@ class EnvGuardTest(unittest.TestCase):
                 ".gitignore",
                 "AGENTS.md",
                 "config.toml",
+                "devtools.config.toml",
                 "agents/scout_fast.toml",
                 "hooks/codex_env_guard.py",
                 "user-skills/example/SKILL.md",
@@ -411,6 +412,7 @@ class EnvGuardTest(unittest.TestCase):
                 "state_5.sqlite-wal",
                 "cache/artifact.bin",
                 "plugins/cache/plugin.json",
+                "profiles/devtools.config.toml",
             ]
             for path in rejected_paths:
                 self.write_and_stage(root, path)

@@ -7,6 +7,7 @@
 !/README.md
 !/bootstrap.sh
 !/config.toml
+!/*.config.toml
 
 !/agents/
 !/agents/**

@@ -8,3 +8,9 @@ developer_instructions = """
 既存実装に合わせ、必要最小限の差分とテストを作り、確認コマンドを実行する。
 範囲外の改善、別設計への拡張、追加レビューの起動は行わない。
 """
+
+# サブエージェント終了後に残留するローカル MCP を起動しない。
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+enabled = false

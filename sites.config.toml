@@ -1,0 +1,3 @@
+# Sites が必要な作業だけ `codex -p sites` で起動する。
+[plugins."sites@openai-bundled"]
+enabled = true

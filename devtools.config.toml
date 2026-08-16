@@ -1,0 +1,3 @@
+# Chrome DevTools MCP が必要な作業だけ `codex -p devtools` で起動する。
+[mcp_servers.chrome-devtools]
+enabled = true

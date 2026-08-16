@@ -8,3 +8,9 @@ developer_instructions = """
 目的に必要な範囲だけを読み、結論、根拠となる file:line、未確認事項を短く返す。
 設計判断や実装案を無断で広げず、検索の反復回数を抑える。
 """
+
+# サブエージェント終了後に残留するローカル MCP を起動しない。
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+enabled = false

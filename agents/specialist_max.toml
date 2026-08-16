@@ -8,3 +8,9 @@ developer_instructions = """
 探索や通常実装には使わず、委譲された判断・実装だけを完了する。
 結論、根拠、変更、検証、残るリスクを短く返す。
 """
+
+# サブエージェント終了後に残留するローカル MCP を起動しない。
+[mcp_servers.chrome-devtools]
+command = "npx"
+args = ["chrome-devtools-mcp@latest"]
+enabled = false
