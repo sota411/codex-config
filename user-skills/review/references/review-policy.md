@@ -67,27 +67,29 @@ Review the diff against these categories when relevant:
 
 Only report a category when the diff actually presents evidence for it.
 
-## Parallel Review Policy
+## Independent Adversarial Review Policy
 
-When subagents are available and allowed, split non-trivial reviews into independent passes for:
+When subagents are available and allowed, start every delegated review in fresh context with only the raw artifact, acceptance criteria, and applicable rules. Do not pass the author's reasoning, suspected defects, or expected verdict.
+
+Require the reviewer to try to refute the artifact's claims, assumptions, correctness, completeness, and validation. Ground factual claims in primary sources, existing code, execution, or measurement. For non-trivial reviews, split independent passes for:
 
 - correctness and regressions
 - security and secret handling
 - performance and resource usage
 - repository rules, tests, docs, and release workflow
 
-Combine results only after each pass cites concrete evidence. Do not count duplicate reports as stronger evidence.
+Combine results only after each pass cites concrete evidence. Do not count duplicate reports as stronger evidence or use a vote as proof.
 
-## Adversarial Verification
+## Finding Revalidation
 
-Before final output, try to disprove every finding:
+Before final output, the main agent must try to disprove every finding:
 
 - Is the cited line actually in the active path?
 - Does existing behavior or a local rule already justify the change?
 - Is the finding based on a real failure mode rather than preference?
 - Is the severity consistent with the release risk?
 
-Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`.
+Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`. For self-review, classify each finding as `受ける`, `弱めて受ける`, or `却下する` and record the evidence for the decision.
 
 ## Hook and Memo Guard Changes
 
@@ -113,6 +115,7 @@ Every finding must include:
 - file path and line reference
 - concrete problem statement
 - evidence source
+- confidence
 - minimal fix direction
 
 Avoid vague comments such as `気になる`, `可能性があります`, or `検討してください`.
@@ -126,6 +129,7 @@ Recommended wording:
 ```text
 指摘はありません。
 未実施の確認: <あれば記載。なければ「なし」>
+反証を試みたが壊せなかった点: <確認できた堅い点。なければ「なし」>
 ```
 
 ## Self-Review Completion Rule
@@ -134,4 +138,5 @@ When reviewing your own implementation, the review is complete only when:
 
 - `[must]` is 0
 - accepted fixes are reflected in the diff
+- every finding has an evidence-backed `受ける`, `弱めて受ける`, or `却下する` decision
 - relevant checks were run or the exact missing check is stated

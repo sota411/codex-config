@@ -101,7 +101,7 @@ class CodexConfigTest(unittest.TestCase):
             "scout_fast": "low",
             "tester_fast": "low",
             "worker_standard": "medium",
-            "reviewer_deep": "high",
+            "reviewer_deep": "xhigh",
             "specialist_max": "max",
         }
         actual: dict[str, str] = {}

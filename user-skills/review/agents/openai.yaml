@@ -1,7 +1,7 @@
 interface:
   display_name: "Review"
-  short_description: "差分を根拠付きで厳格にレビュー"
-  default_prompt: "Use $review to inspect the current diff, report findings as [must]/[recommend]/[nits], and identify required fixes before commit."
+  short_description: "差分を独立した懐疑者として敵対的に検証"
+  default_prompt: "Use $review to adversarially verify the current diff from fresh context, ground findings in evidence, assign severity and confidence, and resolve accepted [must] findings before commit."
 
 policy:
   allow_implicit_invocation: true
