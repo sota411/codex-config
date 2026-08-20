@@ -2,7 +2,7 @@
 
 model = "gpt-5.6-sol"
 model_verbosity = "low"
-model_reasoning_effort = "xhigh"
+model_reasoning_effort = "max"
 hide_agent_reasoning = true
 suppress_unstable_features_warning = true
 # WezTerm では ASCII 入力を貼り付け候補として一時保留せず、受信時に挿入する。
@@ -32,14 +32,11 @@ enabled = false
 [mcp_servers.context7]
 url = "https://mcp.context7.com/mcp"
 
-# Figma MCP はローカルの Figma MCP サーバー起動時だけ有効化する。
-# 再有効化: codex mcp add figma -- npx -y mcp-remote http://127.0.0.1:3845/sse
-# [mcp_servers.figma]
-# command = "npx"
-# args = ["-y", "mcp-remote", "http://127.0.0.1:3845/sse"]
-
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
+
+[mcp_servers.notion]
+url = "https://mcp.notion.com/mcp"
 
 # Notion MCP は OAuth ログイン済みで使うときだけ有効化する。
 # 再有効化: codex mcp add notion --url https://mcp.notion.com/mcp
@@ -139,6 +136,24 @@ trust_level = "trusted"
 trust_level = "trusted"
 
 [projects."/home/sota411/Documents/studyTS"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2024/motionGraphics"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/test"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Downloads/securecode-linux-x64"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/discord-translate"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2026/travel-autumn"]
+trust_level = "trusted"
+
+[projects."/home/sota411/Documents/project/2025/Create-md-resume"]
 trust_level = "trusted"
 
 [notice]
@@ -271,7 +286,7 @@ source_type = "local"
 source = "/home/sota411/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [marketplaces.openai-bundled]
-last_updated = "2026-07-20T13:18:43Z"
+last_updated = "2026-08-08T12:21:11Z"
 source_type = "local"
 source = "/home/sota411/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
@@ -282,8 +297,8 @@ source_type = "git"
 source = "https://github.com/phuryn/pm-skills.git"
 
 [marketplaces.diagram-design]
-last_updated = "2026-08-15T00:46:01Z"
-last_revision = "09df49d8d1a1c7fb2efdfcdc7a2a0713534350a6"
+last_updated = "2026-08-20T01:00:49Z"
+last_revision = "cc2f51f3fd215536cbfc0cf376ea3b513478e9cb"
 source_type = "git"
 source = "https://github.com/cathrynlavery/diagram-design.git"
 
