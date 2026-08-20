@@ -287,6 +287,15 @@ class MemoGuardTest(unittest.TestCase):
         self.assertEqual(self.read_state()["summary_status"], "skipped:read-only-turn")
         self.assertFalse(self.job_file().exists())
 
+    def test_missing_session_file_is_skipped(self) -> None:
+        (self.root / "memo.md").write_text("# 作業メモ\n", encoding="utf-8")
+
+        stop = self.run_guard("stop")
+
+        self.assertEqual(stop.returncode, 0, stop.stderr)
+        self.assertEqual(self.read_state()["summary_status"], "skipped:missing-session")
+        self.assertFalse(self.job_file().exists())
+
     def test_nomemo_tag_skips_change_turn(self) -> None:
         (self.root / "memo.md").write_text("# 作業メモ\n", encoding="utf-8")
         self.write_session_file(

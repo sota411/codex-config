@@ -252,7 +252,13 @@ def run_stop() -> int:
 
     session_path = session_file_for_payload(payload)
     if session_path is None:
-        raise FileNotFoundError(f"session file not found for session_id={session_id}")
+        write_state(
+            session_id,
+            turn_id,
+            memo_path,
+            summary_status="skipped:missing-session",
+        )
+        return 0
 
     records = extract_turn_slice(session_path, turn_id)
     messages = turn_user_messages(records)
