@@ -385,6 +385,7 @@ class EnvGuardTest(unittest.TestCase):
                 "config.toml",
                 "devtools.config.toml",
                 "agents/scout_fast.toml",
+                "archived-user-skills/2026-08-20/unused/example/SKILL.md",
                 "hooks/codex_env_guard.py",
                 "user-skills/example/SKILL.md",
                 "rules/default.rules",

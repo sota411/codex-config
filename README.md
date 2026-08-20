@@ -9,6 +9,7 @@
 - `agents/`: custom agents
 - `hooks/` と `git-hooks/`: Codex hooksとGitのpre-commit hook
 - `user-skills/`: 個人用skillの実体
+- `archived-user-skills/`: 置換済みまたは未使用のskillを有効範囲外で保存する場所
 - `rules/`、`bootstrap.sh` とテスト
 
 `.gitignore` はルート直下を原則として除外し、上記の設定だけを許可します。`auth.json`、`sessions/`、履歴、SQLite、ログ、cache、生成物、plugin cache、バックアップ、Codex同梱の `skills/.system/` は追跡しません。これらは別端末へ復元する対象にも含めません。
@@ -20,6 +21,8 @@ Codexがユーザー単位のskillを読む公式の場所は `$HOME/.agents/ski
 skillの実体はGit管理できるように `~/.codex/user-skills` へ置き、`bootstrap.sh` が `$HOME/.agents/skills` からsymlinkします。すでに別のファイル、ディレクトリ、またはsymlinkがある場合は、`~/.codex/backups/codex-bootstrap-<timestamp>-<process-id>/` へ退避してからリンクを作ります。リンク先が正しければ何も移動しないため、再実行しても同じ状態になります。
 
 復元の正本は `user-skills/` の内容です。skill installerが端末ごとに作る `$HOME/.agents/.skill-lock.json` は、Git上のskill内容と一致するとは限らないため同期しません。skillを追加または更新した後は、`user-skills/` の差分を確認してコミットしてください。
+
+無効化したskillは `archived-user-skills/<日付>/<理由>/` へ移します。このディレクトリは `$HOME/.agents/skills` のsymlink対象外なのでCodexには読み込まれません。復元するときは、対象ディレクトリを `user-skills/` 直下へ戻してから構造検証を実行します。
 
 ## 新しい端末への復元
 

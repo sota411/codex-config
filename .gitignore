@@ -21,6 +21,8 @@
 !/tests/**
 !/user-skills/
 !/user-skills/**
+!/archived-user-skills/
+!/archived-user-skills/**
 
 # Generated content inside otherwise tracked trees.
 **/__pycache__/

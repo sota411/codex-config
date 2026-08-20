@@ -25,6 +25,7 @@ CODEX_ALLOWED_ROOT_FILES = {
 CODEX_ALLOWED_ROOT_SUFFIXES = (".config.toml",)
 CODEX_ALLOWED_DIRECTORIES = (
     "agents",
+    "archived-user-skills",
     "git-hooks",
     "hooks",
     "rules",
