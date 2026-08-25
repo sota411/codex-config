@@ -22,6 +22,10 @@ plan_mode_reasoning_effort = "max"
 [sandbox_workspace_write]
 network_access = true
 
+[tui]
+# 回答を端末上で選択・コピーしやすいraw表示にする。
+raw_output_mode = true
+
 [mcp_servers.chrome-devtools]
 command = "npx"
 args = ["chrome-devtools-mcp@latest"]
