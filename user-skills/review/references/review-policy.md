@@ -3,11 +3,23 @@
 ## Evidence Priority
 
 1. Repository-local instructions and guidelines
-2. Current diff and surrounding implementation
-3. Existing tests and documented behavior
-4. General engineering principles
+2. Reachable behavior in the current diff and surrounding implementation
+3. Existing tests, command output, and documented behavior
+4. Version-matched primary documentation and measurements
 
-Never let a general preference override a project-specific documented rule.
+General engineering principles and preferences may guide investigation, but they are not evidence for a finding. Never let them override a project-specific documented rule.
+
+## Evidence Gate
+
+A final finding must show both the problem and its present impact through at least one of:
+
+- a reachable code path and the resulting incorrect behavior
+- a test, compiler, linter, or command result
+- an explicit acceptance criterion or applicable repository rule
+- a version-matched API contract or primary source tied to the changed code
+- a measurement for performance or resource claims
+
+Do not publish a finding based only on hypothetical language, an undocumented convention, a generic best practice, or missing context. Keep those as internal investigation prompts or `前提・未確認事項`.
 
 ## Scope Selection
 
@@ -30,27 +42,24 @@ Use `[must]` when the change has a concrete correctness or release risk.
 - Clear regression against existing behavior or tests
 - Fail Fast violation that hides an error without explicit justification
 - Missing validation that is required to prove the change is complete
-- Documented rule violation in repo instructions
+- Applicable rule violation that blocks a required check or creates concrete release risk
 
 ### `[recommend]`
 
-Use `[recommend]` when the code can ship but should be improved.
+Use `[recommend]` only when the code can ship and evidence shows a current maintainability, performance, or complexity cost.
 
-- Readability or maintainability issues
-- Non-trivial duplication
-- Design that is broader than necessary
-- Missing non-essential edge-case coverage
-- Naming or structure that slows review and future edits
+- Non-trivial duplication at cited locations with a concrete synchronization cost
+- Unnecessary reachable complexity that demonstrably increases the change surface
+- A measured performance or resource cost that is not a release blocker
+- A violation of an applicable maintainability rule without release risk
 
 ### `[nits]`
 
-Use `[nits]` only for low-impact polish.
+Use `[nits]` only for a low-impact violation of an explicit, applicable local rule or configured linter.
 
-- Small naming improvements
-- Comment wording
-- Formatting or local consistency tweaks
+- Naming, comment, formatting, or consistency violations named by that rule
 
-Do not downgrade a real bug into `[recommend]` or `[nits]`.
+Do not report subjective polish as `[nits]`. Do not downgrade a real bug into `[recommend]` or `[nits]`.
 
 ## Checklist
 
@@ -69,16 +78,11 @@ Only report a category when the diff actually presents evidence for it.
 
 ## Independent Adversarial Review Policy
 
-When subagents are available and allowed, start every delegated review in fresh context with only the raw artifact, acceptance criteria, and applicable rules. Do not pass the author's reasoning, suspected defects, or expected verdict.
+When subagents are available and allowed, use one fresh-context Reviewer and one separate fresh-context Critic. Give both the frozen artifact, acceptance criteria, applicable rules, and required surrounding context. Do not pass the author's reasoning, suspected defects, or expected verdict.
 
-Require the reviewer to try to refute the artifact's claims, assumptions, correctness, completeness, and validation. Ground factual claims in primary sources, existing code, execution, or measurement. For non-trivial reviews, split independent passes for:
+Critic must classify the review as `AGREE`, `DISAGREE_EVIDENCE`, or `DISAGREE_CONCERN`. Evidence-backed disagreement causes Reviewer to revise or drop the affected finding. A concern without contradicting evidence requires Reviewer to prove the finding with verifiable evidence or drop it; it never becomes a final finding by itself.
 
-- correctness and regressions
-- security and secret handling
-- performance and resource usage
-- repository rules, tests, docs, and release workflow
-
-Combine results only after each pass cites concrete evidence. Do not count duplicate reports as stronger evidence or use a vote as proof.
+Reuse the same two threads for at most five inner rounds. Do not edit the artifact during those rounds. If the artifact changes, start both roles again in fresh context. If the fifth round does not converge, the main agent adjudicates from the cited evidence and moves unsupported points to `前提・未確認事項`.
 
 ## Finding Revalidation
 
@@ -115,7 +119,7 @@ Every finding must include:
 - file path and line reference
 - concrete problem statement
 - evidence source
-- confidence
+- demonstrated present impact
 - minimal fix direction
 
 Avoid vague comments such as `気になる`, `可能性があります`, or `検討してください`.

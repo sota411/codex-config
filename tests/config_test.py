@@ -101,7 +101,7 @@ class CodexConfigTest(unittest.TestCase):
             "scout_fast": "low",
             "tester_fast": "low",
             "worker_standard": "medium",
-            "reviewer_deep": "xhigh",
+            "reviewer_deep": "max",
             "specialist_max": "max",
         }
         actual: dict[str, str] = {}
@@ -109,6 +109,13 @@ class CodexConfigTest(unittest.TestCase):
             profile = tomllib.loads(path.read_text(encoding="utf-8"))
             actual[profile["name"]] = profile["model_reasoning_effort"]
         self.assertEqual(actual, expected_efforts)
+
+    def test_reviewer_deep_uses_requested_model_and_effort(self) -> None:
+        profile = tomllib.loads(
+            (CODEX_HOME / "agents" / "reviewer_deep.toml").read_text(encoding="utf-8")
+        )
+        self.assertEqual(profile["model"], "gpt-5.6-luna")
+        self.assertEqual(profile["model_reasoning_effort"], "max")
 
     def test_custom_agent_models_and_efforts_exist_in_current_catalog(self) -> None:
         result = subprocess.run(

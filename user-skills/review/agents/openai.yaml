@@ -1,7 +1,7 @@
 interface:
   display_name: "Review"
-  short_description: "差分を独立した懐疑者として敵対的に検証"
-  default_prompt: "Use $review to adversarially verify the current diff from fresh context, ground findings in evidence, assign severity and confidence, and resolve accepted [must] findings before commit."
+  short_description: "Reviewer–Criticで証拠付きの指摘だけを検証"
+  default_prompt: "Use $review to run a fresh-context Reviewer-Critic loop on the current diff, keep only evidence-grounded findings, and resolve accepted [must] findings before commit."
 
 policy:
   allow_implicit_invocation: true
