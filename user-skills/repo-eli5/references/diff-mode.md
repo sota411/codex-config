@@ -42,10 +42,11 @@ diffだけを要約せず、指定範囲を固定し、周辺実装とtestを読
 - 単純な追加、削除、rename、設定値変更、短いbefore/afterは表を使う。
 - 変更file一覧そのものをnodeへ変換しない。図はbehaviorの変化を示す。
 
-## 根拠と問題を作る
+## HTML教材の根拠と問題を作る
 
 - 現在存在する行は絶対pathの`file:line`へlinkする。
 - 削除行は`<revision>:<path>`とdiff hunk headerを示す。存在しないcurrent lineへlinkしない。
-- 説明の先頭にbase、target、両方のcommit ID、working tree区分を示す。
-- 最初の問題では、変更前後で利用者に見える差を説明してもらう。
-- 応用問題では、条件を一つ変えた場合に通るbranch、影響するtest、または調べるべき境界を答えてもらう。
+- HTMLのheaderにbase、target、両方のcommit ID、working tree区分を示す。
+- 最初のreflection問題では、変更前後で利用者に見える差を説明してもらい、回答後に照合観点を表示する。
+- application問題では、条件を一つ変えた場合に通るbranch、影響するtest、または調べるべき境界を選んでもらう。
+- 問題、feedback、回答後の根拠はHTML内へ置く。CLIには再掲しない。

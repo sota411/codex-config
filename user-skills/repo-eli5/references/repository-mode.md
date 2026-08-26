@@ -36,10 +36,11 @@ repository全体を一度にfile一覧へ変換せず、読者が最初に理解
 - nodeはfile名ではなく役割を表し、必要な場合だけtechnical sublabelに代表pathまたはsymbolを置く。
 - 最大9 nodeへ収まらなければ、overviewからdetailを削る。二枚目を自動生成しない。
 
-## 解説と問題を作る
+## HTML教材の本文と問題を作る
 
-- 最初の一文は、誰のどの入力が、どの結果へ変換されるrepositoryかを述べる。
-- 主要flowの各点には、可能な限りentrypoint、境界、state、testの`file:line`を対応させる。
+- 最初の一文は、誰のどの入力が、どの結果へ変換されるrepositoryかを述べ、`data-repo-summary`へ置く。
+- 主要flowの各点には、可能な限りentrypoint、境界、state、testの`file:line`を対応させ、HTMLの根拠区画から追えるようにする。
 - directory構造の読み上げではなく、responsibilityとdata flowを説明する。
-- 最初の問題では、入力から結果までを2〜4段階で説明してもらう。
-- 応用問題では、入力条件または一つのcomponentを変えたとき、影響する境界や調べるべきfileを答えてもらう。
+- 最初のreflection問題では、入力から結果までを2〜4段階で説明してもらい、回答後に照合観点を表示する。
+- application問題では、入力条件または一つのcomponentを変えたとき、影響する境界や調べるべきfileを選んでもらう。
+- 問題、feedback、回答後の根拠はHTML内へ置く。CLIには再掲しない。
