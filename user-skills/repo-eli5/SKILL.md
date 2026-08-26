@@ -5,7 +5,7 @@ description: ローカルのGitリポジトリまたはGit差分を調査し、�
 
 # リポジトリ図解チューター
 
-ローカルの実装を教材として調査し、全体像、短い解説、根拠、クイズを一つのHTMLへまとめる。CLIは教材への入口として使い、解説本文や問題を分散させない。
+ローカルの実装を教材として調査し、平易な説明、小さな図、根拠、4択クイズを一つのHTMLへまとめる。CLIは教材への入口として使い、解説本文や問題を分散させない。
 
 ## 境界
 
@@ -32,17 +32,20 @@ description: ローカルのGitリポジトリまたはGit差分を調査し、�
 - secretらしいfile（`.env*`、秘密鍵、credential、token file）は、ユーザーがその内容を明示的に対象へ含めない限り開かない。存在や変更種別だけで足りる場合は内容を表示しない。
 - runtime commandを実行しなければ、その挙動は未検証と明記する。実行する場合は、理解に必要な主張を確かめる最小のcheckに限定し、cache、生成物、bytecodeなどを対象リポジトリへ書かないoptionまたは一時directoryを使う。書き込みを防げないcommandは実行しない。
 
-## 全体像の表現を一つ選ぶ
+## 説明してから、小さな図を見せる
 
-構造、依存、複数actorの処理順、分岐が理解の中心なら、利用可能なskill catalogに表示された`diagram-design`の`SKILL.md`を完全に読み、そのworkflowと選んだtype referenceに従う。単純な一覧、一行変更、短いbefore/afterは表を使う。
+調査後に[ELI5 style](references/eli5-style.md)を読み、初見の読者へ渡す核心を選ぶ。repository modeでは、目的と入出力、中核の変換、結果を左右する規則または状態の三つに分ける。各章は「何があるか」を平易な言葉で説明してから、その説明だけを図にする。
+
+構造、依存、複数actorの処理順、分岐が理解の中心なら、利用可能なskill catalogに表示された`diagram-design`の`SKILL.md`を完全に読み、そのworkflowと選んだtype referenceに従う。単純な追加、削除、rename、短いbefore/afterは表を使う。
 
 図を作る場合は次を守る。
 
-1. Architecture、dependency graph、sequence、flowchartから意味に最も合う一種類を選ぶ。behaviorが中心なら`diagram-design`のsemantic patternも選ぶ。
-2. 描画前に、図種、`doc-wide`、省略するdetailを一行で示し、ユーザーの回答を待つ。ユーザーが種類、size、内容を既に固定した場合だけ確認を省く。
+1. 各章ごとに、Architecture、state machine、sequence、flowchartなどから意味に最も合う一種類を選ぶ。behaviorが中心なら`diagram-design`のsemantic patternも選ぶ。
+2. 描画前に、三つの図種、`doc-inline`、各図で省略するdetailを一行で示す。ユーザーが種類、size、内容を既に固定している場合は確認を省く。
 3. ユーザーは`repo-eli5`の図にbuilt-in defaultのneutral minimal-light profileを使うことを選択済みである。brand onboardingを行わず、target repositoryの`.diagram-design`やinstalled style guideを変更しない。
-4. 最大9 nodeのbalancedなoverviewにする。directory treeや変更file一覧を、そのままnodeへ置き換えない。
-5. 図を単体HTMLとして作り、installed `diagram-design/scripts/self_check.py`を通す。browserでrenderし、connector、label、nodeの重なりを修正してから、検証済みSVGを教材へ埋め込む。
+4. 一つの図は3〜5 nodeを目安とし、一つの主張だけを扱う。directory treeや変更file一覧を、そのままnodeへ置き換えない。
+5. 主ラベルには、説明していない略語、クラス名、ファイル名を置かない。技術名は補助ラベルか根拠欄へ分ける。
+6. 三つの図をそれぞれ単体HTMLとして作り、installed `diagram-design/scripts/self_check.py`を通す。browserでrenderし、connector、label、nodeの重なりを修正してから、検証済みSVGを教材へ埋め込む。
 
 ## 図・解説・クイズをHTMLへまとめる
 
@@ -50,11 +53,12 @@ description: ローカルのGitリポジトリまたはGit差分を調査し、�
 
 1. target repositoryと`~/.codex/artifacts/repo-eli5/`のcanonical pathを比較し、artifact baseがtargetと同じか、その配下にないことを確認する。配下になる場合は停止し、target外のartifact baseをユーザーが明示するまで待つ。
 2. 条件を満たす場合だけ、`<safe-repo-slug>/`配下へuniqueなrun directoryを作る。repository modeは`overview.html`、diff modeは`diff.html`とし、既存fileを上書きしない。
-3. repository root、branchまたはdiff範囲、revisionをheaderへ置く。全体像、3〜5点の主要flow、根拠、二問以上のクイズを同じfileへ入れる。
-4. 最初の問題は自分の言葉で主要flowを説明するreflection、次の問題は条件を変えたときの影響を考えるapplicationとする。回答確認後も、図と根拠へ戻れるようにする。
-5. `scripts/validate_learning_html.py`を完成教材へ実行する。placeholder、desktop表示、mobile表示、200%拡大、keyboard操作、二問のfeedback、やり直しも確認する。
+3. repository root、branchまたはdiff範囲、revisionを折りたたみ可能なheader情報へ置く。結論を述べるheader、説明と図を組にした章、章ごとの根拠、4択クイズを同じfileへ入れる。
+4. repository modeは三章、三図、三問とする。diff modeは外から見える変化ごとに1〜3章とし、単純なbefore/afterは一つの表にする。diff modeのクイズは2〜3問とする。
+5. 全問を四択にし、回答後は正誤と理由を示す。正解・不正解にかかわらず、ユーザーが明示的に次へ進めるようにする。
+6. `scripts/validate_learning_html.py`を完成教材へ実行する。placeholder、desktop表示、mobile表示、200%拡大、keyboard操作、全問のfeedback、やり直しも確認する。
 
-専門用語は避けず、最初に出た場所で短く定義する。理解を明確に改善しない比喩、幼児向けの言い換え、飾りの物語、XPやbadgeなどのgame表現は使わない。
+専門用語は、仕組みを平易な言葉で説明した後に名前を渡す。抽象的な仕組みの理解を助ける日常の比喩は一つだけ使ってよい。飾りの物語、XP、点数、badgeなどのgame表現は使わない。
 
 ## CLIはHTMLへの入口にする
 

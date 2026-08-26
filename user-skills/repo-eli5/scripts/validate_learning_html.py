@@ -9,6 +9,7 @@ artifacts additionally run their quiz flow in system Chromium.
 from __future__ import annotations
 
 import argparse
+import functools
 import os
 import re
 import shutil
@@ -17,9 +18,16 @@ import sys
 import tempfile
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
-REQUIRED_SECTIONS = {"visual", "explanation", "evidence", "quiz"}
+REQUIRED_SECTIONS = {"introduction", "explanation", "quiz"}
 PLACEHOLDER_PATTERN = re.compile(r"\{\{[^{}\n]+\}\}")
+SOURCE_REFERENCE_PATTERN = re.compile(r"^(?P<path>/[^\n]+):(?P<line>[1-9][0-9]*)$")
+REVISION_PATTERN = re.compile(r"^[0-9a-fA-F]{7,64}$")
+ROOT_MIN_WIDTH_PATTERN = re.compile(
+    r"(?<![\w.#:-])(?:html|body)(?:\s*,\s*(?:html|body))*\s*\{[^{}]*\bmin-width\s*:",
+    re.IGNORECASE,
+)
 REFERENCE_ATTRIBUTES = {
     "action",
     "formaction",
@@ -39,8 +47,25 @@ RESOURCE_TAGS = {
     "object",
     "script",
     "source",
+    "track",
     "use",
     "video",
+}
+VOID_ELEMENTS = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
 }
 FORBIDDEN_SCRIPT_PATTERNS = {
     r"\beval\s*\(": "eval",
@@ -93,12 +118,46 @@ window.addEventListener("load", async () => {
     const progress = quiz.querySelector("[data-quiz-progress]");
     const complete = quiz.querySelector("[data-quiz-complete]");
     const reset = quiz.querySelector('[data-quiz-action="reset"]');
+    const units = Array.from(document.querySelectorAll("[data-teaching-unit]"));
+    const repoSummary = document.querySelector("[data-repo-summary]");
+    const repoBranch = document.querySelector("[data-repo-branch]");
     const visible = (node) => !node.hidden && getComputedStyle(node).display !== "none";
     const externalResources = () => performance
       .getEntriesByType("resource")
       .filter((entry) => /^https?:/i.test(entry.name));
 
     check("external_resources", externalResources().length === 0);
+    check(
+      "document_overflow",
+      document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    );
+    check("repo_summary", Boolean(repoSummary && repoSummary.textContent.trim()));
+    check("repo_branch", Boolean(repoBranch && repoBranch.textContent.trim()));
+    units.forEach((unit, index) => {
+      const number = index + 1;
+      const intro = unit.querySelector("[data-concept-intro]");
+      const reading = unit.querySelector("[data-diagram-reading]");
+      const caption = unit.querySelector("figcaption, caption");
+      const factDescriptions = Array.from(unit.querySelectorAll("[data-evidence-description]"));
+      const evidence = unit.querySelector("details[data-evidence-group]");
+      const evidenceSummary = evidence && evidence.querySelector("summary");
+      const facts = Array.from(unit.querySelectorAll('[data-evidence-kind="fact"]'));
+      check(`unit_intro_${number}`, Boolean(intro && intro.textContent.trim()));
+      check(`unit_reading_${number}`, Boolean(reading && reading.textContent.trim()));
+      check(`unit_caption_${number}`, Boolean(caption && caption.textContent.trim()));
+      check(
+        `unit_evidence_summary_${number}`,
+        Boolean(evidenceSummary && evidenceSummary.textContent.trim()),
+      );
+      check(
+        `unit_fact_descriptions_${number}`,
+        factDescriptions.length > 0 && factDescriptions.every((node) => node.textContent.trim()),
+      );
+      check(
+        `unit_fact_sources_${number}`,
+        facts.length > 0 && facts.every((fact) => evidence && evidence.contains(fact) && fact.querySelector("[data-source-ref]")),
+      );
+    });
     check("initial_question_count", questions.length >= 2);
     check("initial_one_question", visible(questions[0]) && questions.slice(1).every((node) => !visible(node)));
 
@@ -108,36 +167,38 @@ window.addEventListener("load", async () => {
       const questionNext = question.querySelector('[data-quiz-action="next"]');
       const answer = question.querySelector("[data-answer-panel]");
       const feedback = question.querySelector("[data-quiz-feedback]");
+      const legend = question.querySelector("legend");
+      const labels = Array.from(question.querySelectorAll("label"))
+        .filter((label) => label.querySelector('input[type="radio"]'));
       check(
         `question_${number}_visible`,
         visible(question) && questions.every((candidate, candidateIndex) => candidateIndex === index || !visible(candidate)),
       );
 
-      if (question.dataset.questionKind === "reflection") {
-        const input = question.querySelector("textarea");
-        questionCheck.click();
-        check(`reflection_${number}_empty`, !question.hasAttribute("data-state") && questionNext.hidden);
-        input.value = "入力から結果までの主要な流れを説明する。";
-        questionCheck.click();
-        check(`reflection_${number}_state`, question.dataset.state === "reviewed");
-      } else {
-        const options = Array.from(question.querySelectorAll('input[type="radio"]'));
-        const correct = options.find((option) => option.value === question.dataset.correct);
-        const wrong = options.find((option) => option.value !== question.dataset.correct);
-        check(`choice_${number}_options`, Boolean(correct && wrong));
-        wrong.checked = true;
-        questionCheck.click();
-        check(
-          `choice_wrong_${number}`,
-          question.dataset.state === "incorrect" && questionNext.hidden && !questionCheck.disabled,
-        );
-        correct.checked = true;
-        questionCheck.click();
-        check(`choice_correct_${number}`, question.dataset.state === "correct");
-      }
+      const options = Array.from(question.querySelectorAll('input[type="radio"]'));
+      const correct = options.find((option) => option.value === question.dataset.correct);
+      const wrong = options.find((option) => option.value !== question.dataset.correct);
+      check(`choice_${number}_options`, options.length === 4 && Boolean(correct && wrong));
+      check(`question_${number}_legend`, Boolean(legend && legend.textContent.trim()));
+      check(
+        `question_${number}_labels`,
+        labels.length === 4 && labels.every((label) => label.textContent.trim()),
+      );
+      const selected = number % 2 === 0 ? correct : wrong;
+      selected.checked = true;
+      questionCheck.click();
+      const expectedState = number % 2 === 0 ? "correct" : "incorrect";
+      check(
+        `choice_${expectedState === "correct" ? "correct" : "wrong"}_${number}`,
+        question.dataset.state === expectedState
+          && !questionNext.hidden
+          && questionCheck.disabled
+          && options.every((option) => option.disabled),
+      );
 
       check(`question_${number}_feedback`, feedback.textContent.trim().length > 0);
       check(`question_${number}_answer`, !answer.hidden);
+      check(`question_${number}_reason`, answer.textContent.trim().length > 0);
       check(`question_${number}_next`, !questionNext.hidden);
       check(`question_${number}_focus`, document.activeElement === questionNext);
       questionNext.click();
@@ -153,8 +214,8 @@ window.addEventListener("load", async () => {
     reset.click();
     check("reset_visibility", visible(questions[0]) && questions.slice(1).every((node) => !visible(node)) && !visible(complete));
     check("reset_state", questions.every((question) => !question.hasAttribute("data-state")));
-    check("reset_textareas", Array.from(quiz.querySelectorAll("textarea")).every((input) => input.value === ""));
     check("reset_radios", Array.from(quiz.querySelectorAll('input[type="radio"]')).every((input) => !input.checked));
+    check("reset_enabled", Array.from(quiz.querySelectorAll('input[type="radio"]')).every((input) => !input.disabled));
     check("reset_panels", questions.every((question) => question.querySelector("[data-answer-panel]").hidden));
     check("reset_next", questions.every((question) => question.querySelector('[data-quiz-action="next"]').hidden));
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -176,19 +237,24 @@ class LearningPageParser(HTMLParser):
         self.has_html_doctype = False
         self.html_attrs: list[dict[str, str]] = []
         self.page_roots = 0
+        self.page_modes: list[str] = []
         self.main_count = 0
         self.sections: list[str] = []
+        self.teaching_units: list[dict[str, object]] = []
         self.visual_kinds: list[tuple[str, str]] = []
         self.table_captions = 0
         self.table_headers = 0
         self.repo_meta = 0
         self.repo_roots = 0
+        self.repo_root_values: list[dict[str, str]] = []
         self.repo_branches = 0
+        self.repo_branch_values: list[dict[str, str]] = []
         self.repo_revisions = 0
+        self.repo_revision_values: list[dict[str, str]] = []
         self.repo_summaries = 0
-        self.flow_steps = 0
+        self.repo_summary_values: list[dict[str, str]] = []
         self.evidence_kinds: list[str] = []
-        self.source_refs: list[str] = []
+        self.source_refs: list[dict[str, str]] = []
         self.quiz_roots = 0
         self.quiz_progress: list[dict[str, str]] = []
         self.quiz_questions: list[dict[str, object]] = []
@@ -197,17 +263,29 @@ class LearningPageParser(HTMLParser):
         self.quiz_noscript = 0
         self.scripts: list[dict[str, object]] = []
         self.styles: list[str] = []
+        self.inline_styles: list[str] = []
         self.svgs: list[dict[str, object]] = []
         self.unsafe: list[str] = []
         self.references: list[tuple[str, str, str, str]] = []
+        self.meta_refreshes: list[str] = []
 
         self._current_question: dict[str, object] | None = None
+        self._current_unit: dict[str, object] | None = None
+        self._current_evidence_group: dict[str, object] | None = None
+        self._evidence_group_depth = 0
+        self._current_fact: dict[str, object] | None = None
+        self._fact_depth = 0
+        self._current_choice_label: dict[str, object] | None = None
         self._current_script: dict[str, object] | None = None
-        self._current_source_ref: list[str] | None = None
+        self._anchor_hrefs: list[str] = []
+        self._text_captures: list[dict[str, object]] = []
         self._in_style = False
         self._svg_depth = 0
         self._current_svg: dict[str, object] | None = None
         self._svg_capture: str | None = None
+
+    def _start_text_capture(self, target: dict[str, object]) -> None:
+        self._text_captures.append({"target": target, "depth": 1, "parts": []})
 
     def handle_decl(self, decl: str) -> None:
         if decl.strip().casefold() == "doctype html":
@@ -217,11 +295,20 @@ class LearningPageParser(HTMLParser):
         tag = tag.casefold()
         normalized = [(name.casefold(), value or "") for name, value in attrs]
         data = {name: value for name, value in normalized}
+        if self._current_evidence_group is not None and tag not in VOID_ELEMENTS:
+            self._evidence_group_depth += 1
+        if self._current_fact is not None and tag not in VOID_ELEMENTS:
+            self._fact_depth += 1
+        for capture in self._text_captures:
+            capture["depth"] = int(capture["depth"]) + 1
+        if tag == "a":
+            self._anchor_hrefs.append(data.get("href", ""))
 
         if tag == "html":
             self.html_attrs.append(data)
-        if tag == "body" and data.get("data-repo-eli5-page") == "v1":
+        if tag == "body" and data.get("data-repo-eli5-page") == "v2":
             self.page_roots += 1
+            self.page_modes.append(data.get("data-repo-eli5-mode", ""))
         if tag == "main":
             self.main_count += 1
 
@@ -234,9 +321,95 @@ class LearningPageParser(HTMLParser):
                 self.unsafe.append(f"<{tag}>のsrcdoc属性は使用できません")
             if name in REFERENCE_ATTRIBUTES:
                 self.references.append((tag, data.get("rel", ""), name, value))
+            if name == "style":
+                self.inline_styles.append(value)
+        if tag == "meta" and data.get("http-equiv", "").casefold() == "refresh":
+            self.meta_refreshes.append(data.get("content", ""))
 
-        if tag == "section" and "data-learning-section" in data:
+        if "data-learning-section" in data:
             self.sections.append(data["data-learning-section"])
+        if "data-teaching-unit" in data:
+            unit: dict[str, object] = {
+                "tag": tag,
+                "attrs": data,
+                "events": [],
+                "visuals": [],
+                "intro_texts": [],
+                "reading_texts": [],
+                "visual_captions": [],
+                "evidence_kinds": [],
+                "evidence_groups": [],
+                "facts": [],
+            }
+            self.teaching_units.append(unit)
+            self._current_unit = unit
+        if self._current_unit is not None:
+            events = self._current_unit["events"]
+            assert isinstance(events, list)
+            if "data-concept-intro" in data:
+                events.append("intro")
+                intro = {"text": ""}
+                intro_texts = self._current_unit["intro_texts"]
+                assert isinstance(intro_texts, list)
+                intro_texts.append(intro)
+                self._start_text_capture(intro)
+            if "data-visual-kind" in data:
+                events.append("visual")
+                visuals = self._current_unit["visuals"]
+                assert isinstance(visuals, list)
+                visuals.append((tag, data["data-visual-kind"]))
+            if "data-diagram-reading" in data:
+                events.append("reading")
+                reading = {"text": ""}
+                reading_texts = self._current_unit["reading_texts"]
+                assert isinstance(reading_texts, list)
+                reading_texts.append(reading)
+                self._start_text_capture(reading)
+            if tag in {"figcaption", "caption"}:
+                visual_caption = {"text": ""}
+                visual_captions = self._current_unit["visual_captions"]
+                assert isinstance(visual_captions, list)
+                visual_captions.append(visual_caption)
+                self._start_text_capture(visual_caption)
+            if "data-evidence-kind" in data:
+                unit_evidence = self._current_unit["evidence_kinds"]
+                assert isinstance(unit_evidence, list)
+                unit_evidence.append(data["data-evidence-kind"])
+                if data["data-evidence-kind"] == "fact":
+                    fact: dict[str, object] = {
+                        "tag": tag,
+                        "inside_evidence": self._current_evidence_group is not None,
+                        "descriptions": [],
+                        "source_refs": [],
+                    }
+                    facts = self._current_unit["facts"]
+                    assert isinstance(facts, list)
+                    facts.append(fact)
+                    self._current_fact = fact
+                    self._fact_depth = 1
+            if "data-evidence-description" in data:
+                if self._current_fact is None:
+                    self._current_unit["orphan_fact_description"] = True
+                else:
+                    fact_description = {"text": ""}
+                    descriptions = self._current_fact["descriptions"]
+                    assert isinstance(descriptions, list)
+                    descriptions.append(fact_description)
+                    self._start_text_capture(fact_description)
+            if tag == "details" and "data-evidence-group" in data:
+                events.append("evidence")
+                evidence_group: dict[str, object] = {"summaries": []}
+                evidence_groups = self._current_unit["evidence_groups"]
+                assert isinstance(evidence_groups, list)
+                evidence_groups.append(evidence_group)
+                self._current_evidence_group = evidence_group
+                self._evidence_group_depth = 1
+            if tag == "summary" and self._current_evidence_group is not None:
+                evidence_summary = {"text": ""}
+                summaries = self._current_evidence_group["summaries"]
+                assert isinstance(summaries, list)
+                summaries.append(evidence_summary)
+                self._start_text_capture(evidence_summary)
         if "data-visual-kind" in data:
             self.visual_kinds.append((tag, data["data-visual-kind"]))
         if tag == "caption":
@@ -247,18 +420,37 @@ class LearningPageParser(HTMLParser):
             self.repo_meta += 1
         if "data-repo-root" in data:
             self.repo_roots += 1
+            repo_root = {"text": ""}
+            self.repo_root_values.append(repo_root)
+            self._start_text_capture(repo_root)
         if "data-repo-branch" in data:
             self.repo_branches += 1
+            branch = {"text": ""}
+            self.repo_branch_values.append(branch)
+            self._start_text_capture(branch)
         if "data-repo-revision" in data:
             self.repo_revisions += 1
+            revision = {"text": ""}
+            self.repo_revision_values.append(revision)
+            self._start_text_capture(revision)
         if "data-repo-summary" in data:
             self.repo_summaries += 1
-        if "data-flow-step" in data:
-            self.flow_steps += 1
+            summary = {"text": ""}
+            self.repo_summary_values.append(summary)
+            self._start_text_capture(summary)
         if "data-evidence-kind" in data:
             self.evidence_kinds.append(data["data-evidence-kind"])
         if "data-source-ref" in data:
-            self._current_source_ref = []
+            source_ref = {
+                "text": "",
+                "href": self._anchor_hrefs[-1] if self._anchor_hrefs else "",
+            }
+            self.source_refs.append(source_ref)
+            if self._current_fact is not None:
+                fact_source_refs = self._current_fact["source_refs"]
+                assert isinstance(fact_source_refs, list)
+                fact_source_refs.append(source_ref)
+            self._start_text_capture(source_ref)
 
         if "data-repo-eli5-quiz" in data:
             self.quiz_roots += 1
@@ -267,8 +459,9 @@ class LearningPageParser(HTMLParser):
         if tag == "fieldset" and "data-quiz-question" in data:
             question: dict[str, object] = {
                 "attrs": data,
-                "legends": 0,
+                "legends": [],
                 "radios": [],
+                "choice_labels": [],
                 "textareas": 0,
                 "actions": [],
                 "feedback": [],
@@ -279,13 +472,26 @@ class LearningPageParser(HTMLParser):
             self._current_question = question
         if self._current_question is not None:
             if tag == "legend":
-                self._current_question["legends"] = (
-                    int(self._current_question["legends"]) + 1
-                )
+                legend = {"text": ""}
+                legends = self._current_question["legends"]
+                assert isinstance(legends, list)
+                legends.append(legend)
+                self._start_text_capture(legend)
+            if tag == "label":
+                choice_label: dict[str, object] = {
+                    "parts": [],
+                    "has_radio": False,
+                }
+                choice_labels = self._current_question["choice_labels"]
+                assert isinstance(choice_labels, list)
+                choice_labels.append(choice_label)
+                self._current_choice_label = choice_label
             if tag == "input" and data.get("type", "").casefold() == "radio":
                 radios = self._current_question["radios"]
                 assert isinstance(radios, list)
                 radios.append((data.get("name", ""), data.get("value", "")))
+                if self._current_choice_label is not None:
+                    self._current_choice_label["has_radio"] = True
             if tag == "textarea":
                 self._current_question["textareas"] = (
                     int(self._current_question["textareas"]) + 1
@@ -303,7 +509,9 @@ class LearningPageParser(HTMLParser):
             if "data-answer-panel" in data:
                 answer_panels = self._current_question["answer_panels"]
                 assert isinstance(answer_panels, list)
-                answer_panels.append(data)
+                answer_panel: dict[str, object] = {"attrs": data, "text": ""}
+                answer_panels.append(answer_panel)
+                self._start_text_capture(answer_panel)
             if "data-answer-points" in data:
                 self._current_question["answer_points"] = (
                     int(self._current_question["answer_points"]) + 1
@@ -340,15 +548,36 @@ class LearningPageParser(HTMLParser):
 
     def handle_endtag(self, tag: str) -> None:
         tag = tag.casefold()
+        for capture in list(self._text_captures):
+            capture["depth"] = int(capture["depth"]) - 1
+            if int(capture["depth"]) == 0:
+                target = capture["target"]
+                parts = capture["parts"]
+                assert isinstance(target, dict) and isinstance(parts, list)
+                target["text"] = "".join(str(part) for part in parts).strip()
+                self._text_captures.remove(capture)
+        if tag == "label":
+            self._current_choice_label = None
         if tag == "fieldset":
             self._current_question = None
+        if tag not in VOID_ELEMENTS and self._current_fact is not None:
+            self._fact_depth -= 1
+            if self._fact_depth == 0:
+                self._current_fact = None
+        if tag not in VOID_ELEMENTS and self._current_evidence_group is not None:
+            self._evidence_group_depth -= 1
+            if self._evidence_group_depth == 0:
+                self._current_evidence_group = None
+        if self._current_unit is not None and tag == str(
+            self._current_unit.get("tag", "")
+        ):
+            self._current_unit = None
         if tag == "script":
             self._current_script = None
         if tag == "style":
             self._in_style = False
-        if self._current_source_ref is not None:
-            self.source_refs.append("".join(self._current_source_ref).strip())
-            self._current_source_ref = None
+        if tag == "a" and self._anchor_hrefs:
+            self._anchor_hrefs.pop()
 
         if self._svg_depth:
             if tag in {"title", "desc"}:
@@ -364,8 +593,14 @@ class LearningPageParser(HTMLParser):
             body.append(data)
         if self._in_style:
             self.styles.append(data)
-        if self._current_source_ref is not None:
-            self._current_source_ref.append(data)
+        if self._current_choice_label is not None:
+            parts = self._current_choice_label["parts"]
+            assert isinstance(parts, list)
+            parts.append(data)
+        for capture in self._text_captures:
+            parts = capture["parts"]
+            assert isinstance(parts, list)
+            parts.append(data)
         if self._svg_capture and self._current_svg:
             node = self._current_svg[self._svg_capture]
             assert isinstance(node, dict)
@@ -375,6 +610,172 @@ class LearningPageParser(HTMLParser):
 def _is_embedded_reference(value: str) -> bool:
     stripped = value.strip().casefold()
     return not stripped or stripped.startswith(("#", "data:image/"))
+
+
+@functools.lru_cache(maxsize=32)
+def _git_top_level(repo_root: str) -> tuple[str, str]:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", repo_root, "rev-parse", "--show-toplevel"],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return "", str(exc)
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or "git repositoryとして解決できません"
+        return "", detail
+    return completed.stdout.strip(), ""
+
+
+@functools.lru_cache(maxsize=128)
+def _revision_file_line_count(
+    git_root: str, revision: str, relative_path: str
+) -> tuple[int, str]:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", git_root, "show", f"{revision}:{relative_path}"],
+            check=False,
+            capture_output=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return 0, str(exc)
+    if completed.returncode != 0:
+        detail = completed.stderr.decode("utf-8", errors="replace").strip()
+        return 0, detail or "revision上のfileを読み取れません"
+    return len(completed.stdout.splitlines()), ""
+
+
+@functools.lru_cache(maxsize=32)
+def _git_object_type(git_root: str, revision: str) -> tuple[str, str]:
+    try:
+        completed = subprocess.run(
+            ["git", "-C", git_root, "cat-file", "-t", revision],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return "", str(exc)
+    if completed.returncode != 0:
+        detail = completed.stderr.strip() or "git objectを解決できません"
+        return "", detail
+    return completed.stdout.strip(), ""
+
+
+def _check_source_references(
+    parser: LearningPageParser, *, allow_placeholders: bool
+) -> list[str]:
+    errors: list[str] = []
+    if allow_placeholders:
+        for number, source_ref in enumerate(parser.source_refs, 1):
+            if not source_ref.get("href", "").startswith("file://"):
+                errors.append(f"source reference {number}にはfile:// linkが必要です")
+        return errors
+
+    if len(parser.repo_root_values) != 1 or len(parser.repo_revision_values) != 1:
+        return errors
+    repo_root_text = parser.repo_root_values[0].get("text", "").strip()
+    revision = parser.repo_revision_values[0].get("text", "").strip()
+    repo_root = Path(repo_root_text)
+    if not repo_root.is_absolute() or not repo_root.is_dir():
+        errors.append("data-repo-rootには実在するrepositoryの絶対pathが必要です")
+        resolved_repo_root: Path | None = None
+    else:
+        resolved_repo_root = repo_root.resolve()
+
+    if not REVISION_PATTERN.fullmatch(revision):
+        errors.append("data-repo-revisionには固定したcommit SHAが必要です")
+
+    git_root: Path | None = None
+    if resolved_repo_root is not None:
+        git_root_text, git_error = _git_top_level(str(resolved_repo_root))
+        if git_error:
+            errors.append(
+                f"data-repo-rootをgit repositoryとして確認できません: {git_error}"
+            )
+        else:
+            git_root = Path(git_root_text).resolve()
+            if git_root != resolved_repo_root:
+                errors.append(
+                    "data-repo-rootはgit repositoryのrootでなければなりません"
+                )
+
+    revision_is_commit = False
+    if git_root is not None and REVISION_PATTERN.fullmatch(revision):
+        object_type, object_error = _git_object_type(str(git_root), revision)
+        if object_error:
+            errors.append(f"data-repo-revisionのcommitを確認できません: {object_error}")
+        elif object_type != "commit":
+            errors.append("data-repo-revisionはcommit objectを指す必要があります")
+        else:
+            revision_is_commit = True
+
+    for number, source_ref in enumerate(parser.source_refs, 1):
+        text = source_ref.get("text", "").strip()
+        href = source_ref.get("href", "").strip()
+        match = SOURCE_REFERENCE_PATTERN.fullmatch(text)
+        if match is None:
+            errors.append(
+                f"source reference {number}は/absolute/path/to/file:line形式でなければなりません"
+            )
+            source_path: Path | None = None
+            line_number = 0
+        else:
+            source_path = Path(match.group("path"))
+            line_number = int(match.group("line"))
+
+        parsed_href = urlparse(href)
+        if (
+            parsed_href.scheme.casefold() != "file"
+            or parsed_href.netloc not in {"", "localhost"}
+            or parsed_href.query
+            or parsed_href.fragment
+        ):
+            errors.append(
+                f"source reference {number}には対応するfile:// linkが必要です"
+            )
+        elif source_path is not None:
+            linked_path = Path(unquote(parsed_href.path)).resolve()
+            if linked_path != source_path.resolve():
+                errors.append(
+                    f"source reference {number}のfile:// linkが表示pathと一致しません"
+                )
+
+        if source_path is None or resolved_repo_root is None:
+            continue
+        resolved_source = source_path.resolve()
+        try:
+            resolved_source.relative_to(resolved_repo_root)
+        except ValueError:
+            errors.append(
+                f"source reference {number}はdata-repo-rootの内側を指す必要があります"
+            )
+            continue
+        if not resolved_source.is_file():
+            errors.append(
+                f"source reference {number}のfileがworking treeに存在しません"
+            )
+            continue
+        if git_root is None or not revision_is_commit:
+            continue
+        relative_path = resolved_source.relative_to(git_root).as_posix()
+        line_count, git_error = _revision_file_line_count(
+            str(git_root), revision, relative_path
+        )
+        if git_error:
+            errors.append(
+                f"source reference {number}のfileが固定revisionに存在しません: {git_error}"
+            )
+        elif line_number > line_count:
+            errors.append(
+                f"source reference {number}のline {line_number}は固定revisionの範囲外です"
+            )
+    return errors
 
 
 def _check_svg(svg: dict[str, object], number: int) -> list[str]:
@@ -410,12 +811,14 @@ def _check_question(question: dict[str, object], number: int) -> list[str]:
     attrs = question["attrs"]
     assert isinstance(attrs, dict)
     kind = str(attrs.get("data-question-kind", ""))
-    if kind not in {"choice", "reflection"}:
-        errors.append(
-            f"問題 {number}のdata-question-kindはchoiceまたはreflectionでなければなりません"
-        )
-    if int(question["legends"]) != 1:
+    if kind != "choice":
+        errors.append(f"問題 {number}のdata-question-kindはchoiceでなければなりません")
+    legends = question["legends"]
+    assert isinstance(legends, list)
+    if len(legends) != 1:
         errors.append(f"問題 {number}にはlegendが1つ必要です")
+    elif not str(legends[0].get("text", "")).strip():
+        errors.append(f"問題 {number}の問題文は空にできません")
     if attrs.get("tabindex") != "-1":
         errors.append(f"問題 {number}にはkeyboard focus用のtabindex=-1が必要です")
 
@@ -453,34 +856,43 @@ def _check_question(question: dict[str, object], number: int) -> list[str]:
     assert isinstance(answer_panels, list)
     if len(answer_panels) != 1:
         errors.append(f"問題 {number}には回答後に開くanswer panelが1つ必要です")
-    elif "hidden" not in answer_panels[0]:
-        errors.append(
-            f"問題 {number}のanswer panelは回答確認までhiddenでなければなりません"
-        )
+    else:
+        answer_panel = answer_panels[0]
+        assert isinstance(answer_panel, dict)
+        answer_attrs = answer_panel.get("attrs", {})
+        assert isinstance(answer_attrs, dict)
+        if "hidden" not in answer_attrs:
+            errors.append(
+                f"問題 {number}のanswer panelは回答確認までhiddenでなければなりません"
+            )
+        if not str(answer_panel.get("text", "")).strip():
+            errors.append(f"問題 {number}には空でない回答理由が必要です")
 
-    if kind == "choice":
-        radios = question["radios"]
-        assert isinstance(radios, list)
-        if len(radios) < 2:
-            errors.append(f"問題 {number}のchoiceには2つ以上の選択肢が必要です")
-        radio_names = {name for name, _value in radios if name}
-        values = {value for _name, value in radios if value}
-        if len(radio_names) != 1:
-            errors.append(
-                f"問題 {number}のradioは同じ空でないnameでまとめる必要があります"
-            )
-        correct = str(attrs.get("data-correct", ""))
-        if not correct or correct not in values:
-            errors.append(
-                f"問題 {number}のdata-correctは実在する選択肢を参照する必要があります"
-            )
-    if kind == "reflection":
-        if int(question["textareas"]) != 1:
-            errors.append(f"問題 {number}のreflectionにはtextareaが1つ必要です")
-        if int(question["answer_points"]) != 1:
-            errors.append(
-                f"問題 {number}のreflectionにはdata-answer-pointsが1つ必要です"
-            )
+    radios = question["radios"]
+    assert isinstance(radios, list)
+    if len(radios) != 4:
+        errors.append(f"問題 {number}のchoiceには選択肢が4つ必要です")
+    radio_names = {name for name, _value in radios if name}
+    values = {value for _name, value in radios if value}
+    if len(radio_names) != 1:
+        errors.append(f"問題 {number}のradioは同じ空でないnameでまとめる必要があります")
+    if len(values) != len(radios):
+        errors.append(f"問題 {number}のradio valueは空でなく重複しない値が必要です")
+    choice_labels = question["choice_labels"]
+    assert isinstance(choice_labels, list)
+    if len(choice_labels) != 4 or any(
+        not bool(label.get("has_radio"))
+        or not "".join(str(part) for part in label.get("parts", [])).strip()
+        for label in choice_labels
+    ):
+        errors.append(f"問題 {number}の各選択肢にはradioと空でない表示本文が必要です")
+    correct = str(attrs.get("data-correct", ""))
+    if not correct or correct not in values:
+        errors.append(
+            f"問題 {number}のdata-correctは実在する選択肢を参照する必要があります"
+        )
+    if int(question["textareas"]) != 0 or int(question["answer_points"]) != 0:
+        errors.append(f"問題 {number}の4択にはtextareaやanswer pointsを置けません")
     return errors
 
 
@@ -498,7 +910,15 @@ def validate_source(source: str, *, allow_placeholders: bool = False) -> list[st
     if len(parser.html_attrs) != 1 or parser.html_attrs[0].get("lang") != "ja":
         errors.append("html要素にはlang=jaが必要です")
     if parser.page_roots != 1:
-        errors.append("bodyにdata-repo-eli5-page=v1という学習ページ識別子が必要です")
+        errors.append("bodyにdata-repo-eli5-page=v2という学習ページ識別子が必要です")
+    if len(parser.page_modes) != 1 or parser.page_modes[0] not in {
+        "repository",
+        "diff",
+    }:
+        errors.append("bodyにdata-repo-eli5-mode=repositoryまたはdiffが必要です")
+        page_mode = ""
+    else:
+        page_mode = parser.page_modes[0]
     if parser.main_count != 1:
         errors.append("main要素が1つ必要です")
 
@@ -518,22 +938,106 @@ def validate_source(source: str, *, allow_placeholders: bool = False) -> list[st
         errors.append(
             "repository root、branch、revisionをそれぞれ1つ表示する必要があります"
         )
+    elif not parser.repo_branch_values[0].get("text", "").strip():
+        errors.append("data-repo-branchは空にできません")
     if parser.repo_summaries != 1:
         errors.append(
             "repositoryまたは差分を一文で説明するdata-repo-summaryが1つ必要です"
         )
-    if not 3 <= parser.flow_steps <= 5:
-        errors.append("主要な流れを示すdata-flow-stepが3〜5個必要です")
-    if parser.evidence_kinds.count("fact") < 2 or len(parser.source_refs) < 2:
-        errors.append("確認済みの事実とsource referenceがそれぞれ2件以上必要です")
+    elif not parser.repo_summary_values[0].get("text", "").strip():
+        errors.append("data-repo-summaryは空にできません")
+    errors.extend(
+        _check_source_references(parser, allow_placeholders=allow_placeholders)
+    )
 
-    if len(parser.visual_kinds) != 1:
-        errors.append("data-visual-kindが1つ必要です")
-        visual_kind = ""
-    else:
-        visual_kind = parser.visual_kinds[0][1]
-        if visual_kind not in {"diagram", "table"}:
-            errors.append("data-visual-kindはdiagramまたはtableでなければなりません")
+    if page_mode == "repository" and len(parser.teaching_units) != 3:
+        errors.append("repository modeには説明と図を組にした3章が必要です")
+    if page_mode == "diff" and not 1 <= len(parser.teaching_units) <= 3:
+        errors.append("diff modeには1〜3章が必要です")
+
+    for number, unit in enumerate(parser.teaching_units, 1):
+        if unit.get("tag") != "article":
+            errors.append(f"章 {number}のdata-teaching-unitはarticleに付けてください")
+        events = unit.get("events")
+        visuals = unit.get("visuals")
+        evidence_kinds = unit.get("evidence_kinds")
+        intro_texts = unit.get("intro_texts")
+        reading_texts = unit.get("reading_texts")
+        visual_captions = unit.get("visual_captions")
+        evidence_groups = unit.get("evidence_groups")
+        facts = unit.get("facts")
+        assert (
+            isinstance(events, list)
+            and isinstance(visuals, list)
+            and isinstance(evidence_kinds, list)
+            and isinstance(intro_texts, list)
+            and isinstance(reading_texts, list)
+            and isinstance(visual_captions, list)
+            and isinstance(evidence_groups, list)
+            and isinstance(facts, list)
+        )
+        if events != ["intro", "visual", "reading", "evidence"]:
+            errors.append(
+                f"章 {number}は説明、図、読み方、根拠を一つずつこの順に置く必要があります"
+            )
+        if len(intro_texts) != 1 or not str(intro_texts[0].get("text", "")).strip():
+            errors.append(f"章 {number}の説明本文は空にできません")
+        if len(reading_texts) != 1 or not str(reading_texts[0].get("text", "")).strip():
+            errors.append(f"章 {number}の図の読み方は空にできません")
+        if (
+            len(visual_captions) != 1
+            or not str(visual_captions[0].get("text", "")).strip()
+        ):
+            errors.append(f"章 {number}には空でないvisual captionが1つ必要です")
+        if len(visuals) != 1:
+            errors.append(f"章 {number}には図が1つ必要です")
+        if len(evidence_groups) != 1:
+            errors.append(f"章 {number}には折りたたみ可能な根拠欄が1つ必要です")
+        else:
+            summaries = evidence_groups[0].get("summaries", [])
+            assert isinstance(summaries, list)
+            if len(summaries) != 1 or not str(summaries[0].get("text", "")).strip():
+                errors.append(f"章 {number}の根拠欄には空でないsummaryが1つ必要です")
+        if evidence_kinds.count("fact") < 1 or not facts:
+            errors.append(f"章 {number}には確認済みの根拠とsource referenceが必要です")
+        if any(not bool(fact.get("inside_evidence")) for fact in facts):
+            errors.append(f"章 {number}の各factは根拠欄の内側に置く必要があります")
+        for fact in facts:
+            descriptions = fact.get("descriptions", [])
+            source_refs = fact.get("source_refs", [])
+            assert isinstance(descriptions, list) and isinstance(source_refs, list)
+            if (
+                len(descriptions) != 1
+                or not str(descriptions[0].get("text", "")).strip()
+            ):
+                errors.append(f"章 {number}の各factには空でない根拠の説明が1つ必要です")
+                break
+        if unit.get("orphan_fact_description"):
+            errors.append(
+                f"章 {number}の根拠の説明は対応するfact内に置く必要があります"
+            )
+        if any(not fact.get("source_refs") for fact in facts):
+            errors.append(
+                f"章 {number}の各factには直接対応するsource referenceが必要です"
+            )
+
+    visual_kinds = [kind for _tag, kind in parser.visual_kinds]
+    unknown_visuals = sorted(set(visual_kinds) - {"diagram", "table"})
+    if unknown_visuals:
+        errors.append(
+            f"data-visual-kindはdiagramまたはtableでなければなりません: {', '.join(unknown_visuals)}"
+        )
+    if page_mode == "repository" and visual_kinds != ["diagram", "diagram", "diagram"]:
+        errors.append(
+            "repository modeの3章には小さなdiagramを1つずつ置く必要があります"
+        )
+    if page_mode == "diff":
+        if "table" in visual_kinds and visual_kinds != ["table"]:
+            errors.append(
+                "diff modeでtableを使う場合は一つの章と一つのtableに絞ってください"
+            )
+        if "table" not in visual_kinds and not 1 <= len(visual_kinds) <= 3:
+            errors.append("diff modeのdiagramは1〜3個必要です")
 
     accessible_svgs = [
         svg
@@ -541,12 +1045,21 @@ def validate_source(source: str, *, allow_placeholders: bool = False) -> list[st
         if isinstance(svg["attrs"], dict)
         and str(svg["attrs"].get("aria-hidden", "")).casefold() != "true"
     ]
-    if visual_kind == "diagram":
-        if len(accessible_svgs) != 1:
-            errors.append("diagramには主要なaccessible SVGが1つ必要です")
-        for number, svg in enumerate(accessible_svgs, 1):
-            errors.extend(_check_svg(svg, number))
-    elif visual_kind == "table":
+    diagram_count = visual_kinds.count("diagram")
+    if len(accessible_svgs) != diagram_count:
+        errors.append("各diagramには主要なaccessible SVGが1つ必要です")
+    svg_ids: list[str] = []
+    for number, svg in enumerate(accessible_svgs, 1):
+        errors.extend(_check_svg(svg, number))
+        for node_name in ("title", "desc"):
+            node = svg[node_name]
+            assert isinstance(node, dict)
+            attrs = node.get("attrs", {})
+            assert isinstance(attrs, dict)
+            svg_ids.append(str(attrs.get("id", "")))
+    if len(set(svg_ids)) != len(svg_ids):
+        errors.append("複数diagramのtitle/desc IDは重複できません")
+    if visual_kinds == ["table"]:
         visual_tag = parser.visual_kinds[0][0]
         if (
             visual_tag != "table"
@@ -571,24 +1084,20 @@ def validate_source(source: str, *, allow_placeholders: bool = False) -> list[st
             errors.append(
                 "quiz progressにはrole=status、aria-live=polite、aria-atomic=trueが必要です"
             )
-    if len(parser.quiz_questions) < 2:
-        errors.append("quizには2問以上が必要です")
+    if page_mode == "repository" and len(parser.quiz_questions) != 3:
+        errors.append("repository modeのquizには4択が3問必要です")
+    if page_mode == "diff" and not 2 <= len(parser.quiz_questions) <= 3:
+        errors.append("diff modeのquizには4択が2〜3問必要です")
     kinds = {
         str(question["attrs"].get("data-question-kind", ""))
         for question in parser.quiz_questions
         if isinstance(question["attrs"], dict)
     }
-    if not {"choice", "reflection"}.issubset(kinds):
-        errors.append("quizにはchoice問題とreflection問題がそれぞれ必要です")
-    if len(parser.quiz_questions) >= 2:
+    if kinds != {"choice"}:
+        errors.append("quizはdata-question-kind=choiceの4択だけで構成してください")
+    if parser.quiz_questions:
         first_attrs = parser.quiz_questions[0]["attrs"]
-        second_attrs = parser.quiz_questions[1]["attrs"]
-        assert isinstance(first_attrs, dict) and isinstance(second_attrs, dict)
-        if (
-            first_attrs.get("data-question-kind") != "reflection"
-            or second_attrs.get("data-question-kind") != "choice"
-        ):
-            errors.append("quizの最初はreflection、次はchoiceでなければなりません")
+        assert isinstance(first_attrs, dict)
         if "hidden" in first_attrs or any(
             isinstance(question["attrs"], dict) and "hidden" not in question["attrs"]
             for question in parser.quiz_questions[1:]
@@ -658,17 +1167,26 @@ def validate_source(source: str, *, allow_placeholders: bool = False) -> list[st
             errors.append("外部scriptは使用できません")
         elif tag == "link" and value.strip():
             errors.append("外部link resourceは使用できません")
-        elif tag in {"form", "button"} and value.strip():
+        elif attribute in {"action", "formaction"} and value.strip():
             errors.append(f"<{tag}>から外部へ送信できません")
         elif tag in RESOURCE_TAGS and not _is_embedded_reference(value):
             errors.append(f"<{tag}>の外部resourceは使用できません")
 
-    style_source = "".join(parser.styles)
+    if parser.meta_refreshes:
+        errors.append("<meta>のrefreshから外部resourceへ移動できません")
+
+    style_source = "".join(parser.styles + parser.inline_styles)
     css_urls = re.findall(r"url\s*\(\s*['\"]?([^)'\"\s]+)", style_source, re.IGNORECASE)
-    if re.search(r"@import\b", style_source, re.IGNORECASE) or any(
-        not value.startswith(("#", "data:image/")) for value in css_urls
+    if (
+        "\\" in style_source
+        or re.search(r"@import\b", style_source, re.IGNORECASE)
+        or re.search(r"\b(?:-webkit-)?image-set\s*\(", style_source, re.IGNORECASE)
+        or re.search(r"https?://", style_source, re.IGNORECASE)
+        or any(not value.startswith(("#", "data:image/")) for value in css_urls)
     ):
         errors.append("CSSから外部resourceを読み込めません")
+    if ROOT_MIN_WIDTH_PATTERN.search(style_source):
+        errors.append("html/bodyのmin-widthで本文全体を固定幅にできません")
     if "prefers-reduced-motion" not in style_source:
         errors.append("prefers-reduced-motionのCSSが必要です")
     if re.search(r"@media\s+print\b", style_source, re.IGNORECASE) is None:
@@ -749,6 +1267,7 @@ def browser_smoke_file(path: Path, *, browser: Path | None = None) -> list[str]:
             "--mute-audio",
             "--no-first-run",
             "--no-pings",
+            "--window-size=390,844",
             f"--user-data-dir={profile}",
             "--virtual-time-budget=2000",
             "--dump-dom",

@@ -36,17 +36,19 @@ diffだけを要約せず、指定範囲を固定し、周辺実装とtestを読
 
 ## 可視化する
 
+- 読者に見える変化を先に説明し、その説明だけを図または表にする。
 - actor間の呼出順が変わるならsequenceを使う。
 - 分岐、validation、fallbackが変わるならflowchartを使う。
 - component間の依存または責任が移るならarchitectureかdependency graphを使う。
 - 単純な追加、削除、rename、設定値変更、短いbefore/afterは表を使う。
 - 変更file一覧そのものをnodeへ変換しない。図はbehaviorの変化を示す。
+- 複雑なdiffは、外から見える変化ごとに1〜3章へ分ける。一つの図は3〜5 nodeを目安にする。
 
 ## HTML教材の根拠と問題を作る
 
 - 現在存在する行は絶対pathの`file:line`へlinkする。
 - 削除行は`<revision>:<path>`とdiff hunk headerを示す。存在しないcurrent lineへlinkしない。
 - HTMLのheaderにbase、target、両方のcommit ID、working tree区分を示す。
-- 最初のreflection問題では、変更前後で利用者に見える差を説明してもらい、回答後に照合観点を表示する。
-- application問題では、条件を一つ変えた場合に通るbranch、影響するtest、または調べるべき境界を選んでもらう。
+- 全問を四択にする。第一問では変更前後で利用者に見える差、次の問題では条件を一つ変えた場合に通るbranch、影響するtest、または調べるべき境界を選んでもらう。
+- 各問には四つの選択肢と短い理由を用意し、誤答後も理由を読んで次へ進めるようにする。
 - 問題、feedback、回答後の根拠はHTML内へ置く。CLIには再掲しない。

@@ -17,30 +17,35 @@ repository全体を一度にfile一覧へ変換せず、読者が最初に理解
 6. 公開入力から結果まで、一つの代表flowをsymbol単位で追う。各hopについてresponsibilityと次へ渡すdataを確認する。
 7. 実装から判断できないruntimeの事実だけ、対象リポジトリへ書き込まない既存のcheck commandで確かめる。buildやtestが不要なら実行しない。
 
-## 焦点を選ぶ
+## 三つの仕組みを選ぶ
 
-ユーザーが機能やmoduleを指定した場合は、それを優先する。指定がない場合は次の順で一つを選ぶ。
+ユーザーが機能やmoduleを指定した場合は、その機能を中心に三つの仕組みを選ぶ。指定がない場合は、primary flowから次の三つを選ぶ。
 
-1. primary executableまたはserviceの通常利用flow
-2. libraryの主要なpublic API
-3. document、configuration、generator repositoryの主要な変換flow
+1. **何をするrepositoryか**: 誰のどの入力が、どの出力へ変わるか。
+2. **中心で何が起きるか**: 入力が結果へ変わるまでの、最も重要な変換または受け渡し。
+3. **結果を左右する規則**: state、queue、分岐、capacity、永続化など、動きを理解するために欠かせない仕組み。
 
-複数applicationを持つmonorepoでは、全体の位置関係を短く示した後、primary applicationを一つだけ詳しく扱う。primaryを実装から一意に決められない場合は選択を求める。
+三つ目に相当する仕組みが実装から確認できない場合は、似た概念を作らない。公開entrypoint、状態境界、testを調べ直し、それでも見つからなければ焦点を狭めるよう求める。
+
+複数applicationを持つmonorepoでは、primary applicationを一つ選び、その入出力、中核処理、結果を左右する規則を扱う。primaryを実装から一意に決められない場合は選択を求める。
 
 ## 可視化する
 
+- repository全体を一枚へ詰めず、三つの仕組みを一枚ずつに分ける。
 - componentと接続が中心ならarchitectureを使う。
 - dependencyの向き、fan-in、cycleが中心ならdependency graphを使う。
 - actor間の時間順が中心ならsequenceを使う。
+- stateと切り替わる条件が中心ならstate machineを使う。
 - 分岐と判断条件が中心ならflowchartを使う。
-- nodeはfile名ではなく役割を表し、必要な場合だけtechnical sublabelに代表pathまたはsymbolを置く。
-- 最大9 nodeへ収まらなければ、overviewからdetailを削る。二枚目を自動生成しない。
+- nodeはfile名やクラス名ではなく、読者が見て分かる入力、仕事、結果を表す。
+- 一枚は3〜5 nodeを目安とする。説明していない略語を主ラベルに使わず、technical sublabelは必要な場合だけ置く。
 
 ## HTML教材の本文と問題を作る
 
 - 最初の一文は、誰のどの入力が、どの結果へ変換されるrepositoryかを述べ、`data-repo-summary`へ置く。
-- 主要flowの各点には、可能な限りentrypoint、境界、state、testの`file:line`を対応させ、HTMLの根拠区画から追えるようにする。
-- directory構造の読み上げではなく、responsibilityとdata flowを説明する。
-- 最初のreflection問題では、入力から結果までを2〜4段階で説明してもらい、回答後に照合観点を表示する。
-- application問題では、入力条件または一つのcomponentを変えたとき、影響する境界や調べるべきfileを選んでもらう。
+- 各章は、仕組みを平易な言葉で説明してから図を置く。directory構造の読み上げはしない。
+- 専門用語は、現象や機能を説明した後に「コードでは、これを〜と呼びます」と渡す。
+- 各章の根拠には、entrypoint、境界、state、testのうち、その図を直接支える実処理またはassertionの`file:line`を対応させる。関数宣言やtest宣言だけの行で代用しない。
+- 各章に対応する四択を一問ずつ作る。第一問は目的と出力、第二問は中核の変換、第三問はstateやqueueなどの規則を確認する。
+- 誤答は実装で確認した境界から作り、架空のcomponentやbehaviorを使わない。
 - 問題、feedback、回答後の根拠はHTML内へ置く。CLIには再掲しない。

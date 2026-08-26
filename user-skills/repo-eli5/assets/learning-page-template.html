@@ -4,984 +4,374 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>{{REPOSITORY_NAME}} | repo-eli5</title>
+  <title>{{PAGE_TITLE}}</title>
   <style>
     :root {
-      --canvas: #edf1f5;
-      --paper: #fbfcfd;
+      --canvas: #e9edf2;
+      --paper: #fffdf8;
       --surface: #ffffff;
-      --ink: #182230;
-      --muted: #5c6878;
-      --soft: #8792a1;
-      --rule: #cfd6df;
-      --rule-strong: #aeb8c5;
-      --accent: #d95f2b;
-      --accent-deep: #9d3b18;
-      --accent-tint: #fff0e9;
-      --link: #215da8;
-      --success: #176c4d;
-      --success-tint: #e9f7f0;
-      --danger: #9d3437;
-      --danger-tint: #fff0f0;
-      --radius: 8px;
-      --sans: "BIZ UDPGothic", "Noto Sans JP", system-ui, -apple-system, sans-serif;
+      --ink: #172238;
+      --muted: #526077;
+      --faint: #758197;
+      --line: #ccd4df;
+      --line-strong: #aeb9c7;
+      --blue: #1766b1;
+      --blue-deep: #0d477e;
+      --blue-pale: #eaf4ff;
+      --orange: #d9612c;
+      --orange-deep: #97401c;
+      --orange-pale: #fff0e8;
+      --green: #17664c;
+      --green-pale: #eaf7f1;
+      --shadow: 0 18px 50px rgba(31, 45, 65, 0.1);
+      --radius: 10px;
+      --sans: "BIZ UDPGothic", "Noto Sans JP", "Yu Gothic UI", system-ui, sans-serif;
       --serif: "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
       --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      min-width: 320px;
       margin: 0;
       color: var(--ink);
-      background:
-        linear-gradient(90deg, transparent 0 23px, rgba(24, 34, 48, 0.045) 24px, transparent 25px) 0 0 / 48px 48px,
-        var(--canvas);
+      background: linear-gradient(rgba(23, 34, 56, 0.035) 1px, transparent 1px) 0 0 / 100% 28px, var(--canvas);
       font-family: var(--sans);
-      line-height: 1.7;
+      line-height: 1.75;
     }
-
-    a {
-      color: var(--link);
-      text-underline-offset: 0.18em;
-    }
-
-    button,
-    textarea,
-    input {
-      font: inherit;
-    }
-
-    button,
-    a,
-    textarea,
-    input {
-      outline-offset: 4px;
-    }
-
-    :focus-visible {
-      outline: 3px solid var(--link);
-    }
+    a { color: var(--blue-deep); text-underline-offset: 0.2em; }
+    button, input { font: inherit; }
+    :focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+    h1, h2, h3, p, code { overflow-wrap: anywhere; }
+    [hidden] { display: none !important; }
 
     .skip-link {
       position: fixed;
-      z-index: 20;
+      z-index: 100;
       top: 12px;
       left: 12px;
-      padding: 8px 12px;
-      color: var(--paper);
+      padding: 8px 14px;
+      color: #fff;
       background: var(--ink);
-      transform: translateY(-160%);
+      transform: translateY(-180%);
     }
-
-    .skip-link:focus {
-      transform: translateY(0);
-    }
-
-    .page-shell {
-      width: min(1180px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 24px 0 56px;
-    }
-
-    .masthead,
-    .learning-section,
-    .page-footer {
-      background: var(--paper);
-      border: 1px solid var(--rule);
-    }
-
-    .masthead {
-      position: relative;
+    .skip-link:focus { transform: translateY(0); }
+    .page {
+      width: min(1040px, calc(100% - 32px));
+      margin: 28px auto 64px;
       overflow: hidden;
-      padding: clamp(28px, 5vw, 60px);
-      border-top: 5px solid var(--ink);
-      border-radius: var(--radius) var(--radius) 0 0;
+      border: 1px solid var(--line);
+      border-top: 6px solid var(--ink);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
     }
 
-    .masthead::after {
+    .hero {
+      position: relative;
+      padding: clamp(32px, 7vw, 76px) clamp(22px, 7vw, 76px) clamp(30px, 6vw, 58px);
+      border-bottom: 1px solid var(--line);
+    }
+    .hero::after {
       position: absolute;
-      top: 0;
-      right: 0;
-      width: 10px;
+      inset: 0 0 auto auto;
+      width: 9px;
       height: 100%;
-      background: var(--accent);
+      background: var(--orange);
       content: "";
     }
-
-    .eyebrow {
-      margin: 0 0 12px;
-      color: var(--accent-deep);
+    .eyebrow, .chapter-number, .quiz-label {
+      margin: 0;
+      color: var(--orange-deep);
       font-family: var(--mono);
       font-size: 0.78rem;
       font-weight: 700;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.09em;
       text-transform: uppercase;
     }
-
-    h1,
-    h2,
-    h3,
-    p {
-      overflow-wrap: anywhere;
-    }
-
     h1 {
       max-width: 850px;
-      margin: 0;
+      margin: 12px 0 0;
       font-family: var(--serif);
-      font-size: clamp(2.1rem, 6vw, 4.4rem);
+      font-size: clamp(2rem, 5.8vw, 4.35rem);
       font-weight: 600;
       letter-spacing: -0.035em;
-      line-height: 1.06;
+      line-height: 1.14;
     }
+    .repo-name { margin: 20px 0 0; color: var(--muted); font-size: 0.95rem; }
+    .repo-name code { color: var(--ink); font-family: var(--mono); font-weight: 700; }
+    .summary { max-width: 760px; margin: 16px 0 0; color: var(--muted); font-size: clamp(1.02rem, 2vw, 1.18rem); }
+    .repo-details { max-width: 860px; margin-top: 28px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    summary { padding: 12px 2px; color: var(--blue-deep); cursor: pointer; font-weight: 700; }
+    summary:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+    .repo-meta { display: grid; grid-template-columns: minmax(110px, 0.35fr) minmax(0, 1fr); gap: 1px; margin: 0 0 16px; border: 1px solid var(--line); background: var(--line); }
+    .repo-meta dt, .repo-meta dd { min-width: 0; margin: 0; padding: 9px 12px; background: var(--surface); }
+    .repo-meta dt { color: var(--faint); font-family: var(--mono); font-size: 0.76rem; font-weight: 700; }
+    .repo-meta dd { font-family: var(--mono); font-size: 0.82rem; overflow-wrap: anywhere; }
 
-    .lede {
-      max-width: 760px;
-      margin: 20px 0 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 2vw, 1.18rem);
-    }
-
-    .repo-meta {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 1px;
-      margin: 32px 0 0;
-      overflow: hidden;
-      border: 1px solid var(--rule);
-      border-radius: 6px;
-      background: var(--rule);
-    }
-
-    .repo-meta > div {
-      min-width: 0;
-      padding: 12px 14px;
-      background: var(--surface);
-    }
-
-    .repo-meta dt {
-      margin-bottom: 4px;
-      color: var(--soft);
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .repo-meta dd {
-      margin: 0;
-      overflow-wrap: anywhere;
-      font-family: var(--mono);
-      font-size: 0.85rem;
-    }
-
-    .local-nav {
+    .contents {
       position: sticky;
-      z-index: 10;
+      z-index: 20;
       top: 0;
       display: flex;
       gap: 4px;
       overflow-x: auto;
-      padding: 10px 12px;
-      border-right: 1px solid var(--rule);
-      border-bottom: 1px solid var(--rule);
-      border-left: 1px solid var(--rule);
-      background: rgba(251, 252, 253, 0.96);
+      padding: 10px clamp(14px, 4vw, 38px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 253, 248, 0.96);
       backdrop-filter: blur(8px);
     }
+    .contents a { flex: 0 0 auto; padding: 6px 10px; color: var(--ink); border: 1px solid transparent; border-radius: 5px; font-size: 0.8rem; font-weight: 700; text-decoration: none; }
+    .contents a:hover { border-color: var(--line-strong); background: var(--surface); }
 
-    .local-nav a {
-      flex: 0 0 auto;
-      padding: 7px 11px;
-      color: var(--ink);
-      border: 1px solid transparent;
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      font-weight: 700;
-      text-decoration: none;
-    }
+    .explanation { padding: 0 clamp(22px, 7vw, 76px); }
+    .chapter { padding: clamp(54px, 9vw, 96px) 0; border-bottom: 1px solid var(--line); scroll-margin-top: 70px; }
+    .chapter:last-of-type { border-bottom: 0; }
+    .chapter-heading { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 18px; align-items: start; }
+    .chapter-number { display: grid; width: 52px; height: 52px; place-items: center; color: #fff; border-radius: 50%; background: var(--ink); }
+    .chapter h2 { max-width: 780px; margin: 0; font-family: var(--serif); font-size: clamp(1.65rem, 4vw, 2.7rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1.3; }
+    .concept-intro { max-width: 760px; margin: 26px 0 0 76px; font-size: clamp(1rem, 2vw, 1.12rem); }
+    .analogy { max-width: 760px; margin: 20px 0 0 76px; padding: 14px 18px; border-left: 4px solid var(--orange); background: var(--orange-pale); }
+    .analogy strong { color: var(--orange-deep); }
+    .figure-intro { max-width: 760px; margin: 24px 0 -10px 76px; color: var(--blue-deep); font-weight: 700; }
 
-    .local-nav a:hover {
-      border-color: var(--rule-strong);
-      background: var(--surface);
-    }
-
-    .learning-section {
-      padding: clamp(24px, 4vw, 48px);
-      border-top: 0;
-    }
-
-    .section-heading {
-      display: grid;
-      grid-template-columns: 48px minmax(0, 1fr);
-      gap: 16px;
-      align-items: start;
-      margin-bottom: 28px;
-    }
-
-    .section-number {
-      display: grid;
-      width: 44px;
-      height: 44px;
-      place-items: center;
-      color: var(--paper);
-      border-radius: 50%;
-      background: var(--ink);
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      font-weight: 700;
-    }
-
-    .section-heading h2 {
-      margin: 0;
-      font-family: var(--serif);
-      font-size: clamp(1.65rem, 4vw, 2.6rem);
-      line-height: 1.2;
-    }
-
-    .section-heading p {
-      margin: 6px 0 0;
-      color: var(--muted);
-    }
-
-    .diagram-frame {
+    .diagram {
+      margin: 32px 0 0;
+      padding: clamp(12px, 3vw, 28px);
       overflow-x: auto;
-      padding: clamp(8px, 2vw, 20px);
-      border: 1px solid var(--rule);
+      overflow-y: hidden;
+      border: 1px solid var(--line);
       border-radius: var(--radius);
-      background: #f5f5f5;
+      background: linear-gradient(rgba(23, 102, 177, 0.035) 1px, transparent 1px) 0 0 / 100% 32px, var(--surface);
     }
-
-    .diagram-frame svg {
-      display: block;
-      width: 100%;
-      min-width: 720px;
-      height: auto;
-    }
-
-    .diagram-note {
-      margin: 16px 0 0;
-      color: var(--muted);
-      font-size: 0.88rem;
-    }
-
-    .trace-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.65fr) minmax(250px, 0.75fr);
-      gap: clamp(24px, 5vw, 56px);
-      align-items: start;
-    }
-
-    .summary-line {
-      margin: 0 0 32px;
-      padding: 18px 20px;
-      border-left: 5px solid var(--accent);
-      background: var(--accent-tint);
-      font-size: 1.08rem;
-      font-weight: 700;
-    }
-
-    .trace {
-      position: relative;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .trace::before {
-      position: absolute;
-      top: 20px;
-      bottom: 20px;
-      left: 20px;
-      width: 2px;
-      background: var(--rule-strong);
-      content: "";
-    }
-
-    .trace-step {
-      position: relative;
-      display: grid;
-      grid-template-columns: 42px minmax(0, 1fr);
-      gap: 16px;
-      padding-bottom: 28px;
-    }
-
-    .trace-step:last-child {
-      padding-bottom: 0;
-    }
-
-    .trace-index {
-      z-index: 1;
-      display: grid;
-      width: 42px;
-      height: 42px;
-      place-items: center;
-      color: var(--ink);
-      border: 2px solid var(--ink);
-      border-radius: 50%;
-      background: var(--paper);
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .trace-step:first-child .trace-index,
-    .trace-step:last-child .trace-index {
-      color: var(--paper);
-      border-color: var(--accent);
-      background: var(--accent);
-    }
-
-    .trace-copy {
-      padding-top: 3px;
-    }
-
-    .trace-copy h3 {
-      margin: 0;
-      font-size: 1.05rem;
-    }
-
-    .trace-copy p {
-      margin: 5px 0 0;
-      color: var(--muted);
-    }
-
-    .evidence-panel {
-      padding: 20px;
-      border: 1px solid var(--rule-strong);
-      border-top: 5px solid var(--ink);
-      border-radius: 4px;
-      background: var(--surface);
-    }
-
-    .evidence-panel h3 {
-      margin: 0 0 14px;
-      font-size: 1rem;
-    }
-
-    .evidence-panel ul {
-      display: grid;
-      gap: 12px;
-      margin: 0;
-      padding: 0;
-      list-style: none;
-    }
-
-    .evidence-panel li {
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .evidence-panel li:last-child {
-      padding-bottom: 0;
-      border-bottom: 0;
-    }
-
-    .evidence-kind {
-      display: block;
-      margin-bottom: 5px;
-      color: var(--success);
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-    }
-
-    [data-evidence-kind="inference"] .evidence-kind {
-      color: var(--accent-deep);
-    }
-
-    [data-evidence-kind="unverified"] .evidence-kind {
-      color: var(--danger);
-    }
-
-    code {
-      font-family: var(--mono);
-      font-size: 0.82em;
-    }
-
-    [data-source-ref] {
-      display: block;
-      margin-top: 5px;
-      overflow-wrap: anywhere;
-      color: var(--link);
-    }
-
-    .quiz-shell {
-      max-width: 820px;
-      margin: 0 auto;
-    }
-
-    .quiz-progress-row {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .quiz-progress-row::after {
-      flex: 1;
-      height: 2px;
-      background: linear-gradient(
-        90deg,
-        var(--accent) 0 var(--quiz-completion, 50%),
-        var(--rule) var(--quiz-completion, 50%)
-      );
-      content: "";
-    }
-
-    [data-quiz-progress] {
-      margin: 0;
-      color: var(--accent-deep);
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    [data-quiz-question] {
-      min-width: 0;
-      margin: 0;
-      padding: clamp(20px, 4vw, 36px);
-      border: 1px solid var(--rule-strong);
-      border-radius: var(--radius);
-      background: var(--surface);
-    }
-
-    [data-quiz-question][data-state="correct"] {
-      border-left: 6px solid var(--success);
-    }
-
-    [data-quiz-question][data-state="reviewed"] {
-      border-left: 6px solid var(--accent);
-    }
-
-    [data-quiz-question][data-state="incorrect"] {
-      border-left: 6px solid var(--danger);
-    }
-
-    [data-quiz-question] legend {
-      max-width: 680px;
-      padding: 0 10px 0 0;
-      font-family: var(--serif);
-      font-size: clamp(1.25rem, 3vw, 1.75rem);
-      font-weight: 700;
-      line-height: 1.4;
-    }
-
-    .prompt-note {
-      margin: 10px 0 20px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .choice-list {
-      display: grid;
-      gap: 10px;
-      margin: 18px 0 0;
-    }
-
-    .choice {
-      display: grid;
-      grid-template-columns: 24px minmax(0, 1fr);
-      gap: 10px;
-      align-items: start;
-      padding: 13px 14px;
-      border: 1px solid var(--rule);
-      border-radius: 5px;
-      cursor: pointer;
-    }
-
-    .choice:hover,
-    .choice:has(input:checked) {
-      border-color: var(--ink);
-      background: #f4f7fa;
-    }
-
-    .choice input {
-      width: 18px;
-      height: 18px;
-      margin: 3px 0 0;
-      accent-color: var(--accent-deep);
-    }
-
-    .reflection-label {
-      display: grid;
-      gap: 8px;
-      margin-top: 18px;
-      color: var(--muted);
-      font-size: 0.88rem;
-      font-weight: 700;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 140px;
-      resize: vertical;
-      padding: 14px;
-      color: var(--ink);
-      border: 1px solid var(--rule-strong);
-      border-radius: 5px;
-      background: var(--paper);
-      line-height: 1.65;
-    }
-
-    .quiz-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 22px;
-    }
-
-    .button {
-      min-height: 44px;
-      padding: 10px 16px;
-      border: 1px solid var(--ink);
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-
-    .button-primary {
-      color: var(--paper);
-      background: var(--ink);
-    }
-
-    .button-secondary {
-      color: var(--ink);
-      background: transparent;
-    }
-
-    .button:hover:not(:disabled) {
-      transform: translateY(-1px);
-    }
-
-    .button:disabled {
-      cursor: not-allowed;
-      opacity: 0.55;
-    }
-
-    [data-quiz-feedback] {
-      min-height: 1.7em;
-      margin: 16px 0 0;
-      font-weight: 700;
-    }
-
-    [data-answer-panel] {
-      margin-top: 16px;
-      padding: 16px 18px;
-      border-left: 4px solid var(--accent);
-      background: var(--accent-tint);
-    }
-
-    [data-answer-panel] h3 {
-      margin: 0 0 8px;
-      font-size: 1rem;
-    }
-
-    [data-answer-panel] p,
-    [data-answer-panel] ul {
-      margin-top: 0;
-      margin-bottom: 0;
-    }
-
-    .quiz-complete {
-      padding: 28px;
-      border: 1px solid var(--success);
-      border-radius: var(--radius);
-      background: var(--success-tint);
-      text-align: center;
-    }
-
-    .quiz-complete h3 {
-      margin: 0 0 6px;
-      font-family: var(--serif);
-      font-size: 1.6rem;
-    }
-
-    .quiz-complete p {
-      margin: 0 0 18px;
-    }
-
-    .page-footer {
-      padding: 20px clamp(24px, 4vw, 48px);
-      border-top: 0;
-      border-radius: 0 0 var(--radius) var(--radius);
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 0.75rem;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    @media (max-width: 800px) {
-      .repo-meta,
-      .trace-layout {
-        grid-template-columns: 1fr;
-      }
-
-      .local-nav {
-        position: static;
-      }
-
-      .diagram-frame {
-        margin-right: -16px;
-        margin-left: -16px;
-        border-right: 0;
-        border-left: 0;
-        border-radius: 0;
-      }
-    }
-
-    @media (max-width: 520px) {
-      .page-shell {
-        width: min(100% - 16px, 1180px);
-        padding-top: 8px;
-      }
-
-      .masthead,
-      .learning-section {
-        padding: 22px 18px;
-      }
-
-      .section-heading {
-        grid-template-columns: 38px minmax(0, 1fr);
-        gap: 10px;
-      }
-
-      .section-number {
-        width: 36px;
-        height: 36px;
-      }
-
-      .trace-step {
-        grid-template-columns: 36px minmax(0, 1fr);
-        gap: 12px;
-      }
-
-      .trace::before {
-        left: 17px;
-      }
-
-      .trace-index {
-        width: 36px;
-        height: 36px;
-      }
+    .diagram svg { display: block; width: 100%; height: auto; min-height: 220px; }
+    .diagram-hint { display: none; margin: 0 0 10px; color: var(--blue-deep); font-size: 0.8rem; font-weight: 700; }
+    .diagram figcaption { margin-top: 14px; padding-top: 12px; color: var(--faint); border-top: 1px solid var(--line); font-size: 0.84rem; }
+    .diagram-reading { position: relative; max-width: 800px; margin: 22px 0 0; padding-left: 32px; font-weight: 700; }
+    .diagram-reading::before { position: absolute; top: 0.72em; left: 0; width: 20px; height: 3px; background: var(--blue); content: ""; }
+
+    .evidence { margin-top: 24px; border-top: 1px dashed var(--line-strong); border-bottom: 1px dashed var(--line-strong); }
+    .evidence-list { display: grid; gap: 12px; margin: 0 0 18px; padding: 0; list-style: none; }
+    .evidence-list li { padding: 13px 15px; border-left: 4px solid var(--blue); background: var(--blue-pale); }
+    .evidence-label { display: inline-block; margin-right: 8px; color: var(--blue-deep); font-size: 0.8rem; font-weight: 800; }
+    .source-ref { display: block; margin-top: 6px; color: var(--muted); font-family: var(--mono); font-size: 0.78rem; }
+    .unverified { margin: 0 clamp(22px, 7vw, 76px) clamp(54px, 8vw, 84px); padding: 20px 22px; border: 1px solid #e0b792; border-left: 5px solid var(--orange); border-radius: 6px; background: var(--orange-pale); }
+    .unverified h2 { margin: 0; font-size: 1.05rem; }
+    .unverified p { margin: 7px 0 0; color: var(--muted); }
+
+    .quiz { padding: clamp(44px, 8vw, 80px) clamp(22px, 7vw, 76px); color: #fff; background: var(--ink); scroll-margin-top: 62px; }
+    .quiz h2 { max-width: 760px; margin: 10px 0 0; font-family: var(--serif); font-size: clamp(1.7rem, 4vw, 2.8rem); font-weight: 600; line-height: 1.3; }
+    .quiz-intro { max-width: 680px; margin: 14px 0 0; color: #dce4ee; }
+    .quiz-progress { margin: 28px 0 14px; color: #ffb58f; font-family: var(--mono); font-size: 0.85rem; font-weight: 700; }
+    .question { min-width: 0; margin: 0; padding: clamp(18px, 4vw, 32px); border: 1px solid #526179; border-radius: var(--radius); background: #202e45; }
+    .question legend { max-width: 760px; padding: 0 8px; font-size: clamp(1.05rem, 2.4vw, 1.3rem); font-weight: 800; line-height: 1.55; }
+    .choices { display: grid; gap: 10px; margin-top: 18px; }
+    .choice { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; padding: 13px 14px; border: 1px solid #5e6d84; border-radius: 6px; background: #273750; cursor: pointer; }
+    .choice:hover { border-color: #92a8c7; background: #2d405f; }
+    .choice input { width: 18px; height: 18px; margin: 4px 0 0; accent-color: #ff9562; }
+    .choice:has(input:checked) { border-color: #ff9b6c; box-shadow: inset 0 0 0 1px #ff9b6c; }
+    .choice:has(input:disabled) { cursor: default; }
+    .quiz-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+    .button { min-height: 46px; padding: 10px 17px; border: 2px solid transparent; border-radius: 6px; font-weight: 800; cursor: pointer; }
+    .button-primary { color: var(--ink); background: #ff9b6c; }
+    .button-secondary { color: #fff; border-color: #91a3be; background: transparent; }
+    .button:hover:not(:disabled) { transform: translateY(-1px); }
+    .button:disabled { cursor: default; opacity: 0.55; }
+    .feedback { min-height: 1.75em; margin: 17px 0 0; font-weight: 800; }
+    .question[data-state="correct"] .feedback { color: #8ee0ba; }
+    .question[data-state="incorrect"] .feedback { color: #ffadb1; }
+    .answer-panel { margin-top: 12px; padding: 15px 17px; color: var(--ink); border-left: 5px solid var(--blue); border-radius: 4px; background: var(--surface); }
+    .answer-panel p { margin: 0; }
+    .quiz-complete { padding: 26px; color: var(--ink); border-radius: var(--radius); background: var(--green-pale); }
+    .quiz-complete h3 { margin: 0; font-family: var(--serif); font-size: 1.55rem; }
+    .quiz-complete p { margin: 8px 0 18px; }
+    .footer { padding: 18px clamp(22px, 7vw, 76px); color: var(--faint); border-top: 1px solid var(--line); background: #f8f6f0; font-size: 0.78rem; }
+
+    @media (max-width: 760px) {
+      .page { width: 100%; margin: 0; border-right: 0; border-left: 0; border-radius: 0; box-shadow: none; }
+      .hero::after { width: 6px; }
+      .repo-meta { grid-template-columns: 1fr; }
+      .repo-meta dt { padding-bottom: 2px; }
+      .repo-meta dd { padding-top: 2px; }
+      .chapter-heading { grid-template-columns: 42px minmax(0, 1fr); gap: 12px; }
+      .chapter-number { width: 38px; height: 38px; font-size: 0.7rem; }
+      .concept-intro, .analogy, .figure-intro { margin-left: 0; }
+      .diagram { margin-right: -8px; margin-left: -8px; }
+      .diagram svg { min-width: 720px; min-height: 0; }
+      .diagram-hint { display: block; }
+      .choice { padding: 12px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      html {
-        scroll-behavior: auto;
-      }
-
-      *,
-      *::before,
-      *::after {
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-      }
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
     }
 
     @media print {
-      body {
-        background: #ffffff;
-      }
-
-      .page-shell {
-        width: 100%;
-        padding: 0;
-      }
-
-      .local-nav,
-      .skip-link,
-      .quiz-actions,
-      .quiz-complete {
-        display: none !important;
-      }
-
-      .masthead,
-      .learning-section,
-      .page-footer {
-        break-inside: avoid;
-        border-right: 0;
-        border-left: 0;
-      }
-
-      [data-quiz-question],
-      [data-answer-panel] {
-        display: block !important;
-      }
+      body { background: #fff; }
+      .page { width: 100%; margin: 0; border: 0; box-shadow: none; }
+      .contents, .quiz-actions, .skip-link { display: none; }
+      .chapter, .diagram, .question { break-inside: avoid; }
+      .quiz { color: var(--ink); background: #fff; }
+      .question { color: var(--ink); border-color: var(--line); background: #fff; }
+      [data-quiz-question][hidden], [data-answer-panel][hidden] { display: block !important; }
     }
   </style>
 </head>
-<body data-repo-eli5-page="v1">
-  <a class="skip-link" href="#visual">全体像へ移動する</a>
-  <main class="page-shell">
-    <header class="masthead">
-      <p class="eyebrow">Repository learning brief</p>
-      <h1>{{REPOSITORY_NAME}}</h1>
-      <p class="lede">{{LEDE}}</p>
-      <dl class="repo-meta" data-repo-meta>
-        <div>
-          <dt>Repository</dt>
-          <dd data-repo-root>{{ABSOLUTE_REPOSITORY_ROOT}}</dd>
-        </div>
-        <div>
-          <dt>Branch / scope</dt>
-          <dd data-repo-branch>{{BRANCH_OR_DIFF_SCOPE}}</dd>
-        </div>
-        <div>
-          <dt>Revision</dt>
-          <dd data-repo-revision>{{COMMIT_OR_REVISION_RANGE}}</dd>
-        </div>
-      </dl>
+<body data-repo-eli5-page="v2" data-repo-eli5-mode="repository">
+  <a class="skip-link" href="#main-content">本文へ移動</a>
+  <main id="main-content" class="page">
+    <header class="hero" data-learning-section="introduction">
+      <p class="eyebrow">このリポジトリをやさしく説明</p>
+      <h1>{{HERO_THESIS}}</h1>
+      <p class="repo-name">対象: <code>{{REPOSITORY_NAME}}</code></p>
+      <p class="summary" data-repo-summary>{{REPO_SUMMARY}}</p>
+      <details class="repo-details">
+        <summary>今回調べた範囲</summary>
+        <dl class="repo-meta" data-repo-meta>
+          <dt>リポジトリの場所</dt><dd data-repo-root>{{REPOSITORY_ROOT}}</dd>
+          <dt>ブランチ / 差分</dt><dd data-repo-branch>{{BRANCH_OR_RANGE}}</dd>
+          <dt>調べた版</dt><dd data-repo-revision>{{REVISION}}</dd>
+          <dt>作成日</dt><dd>{{GENERATED_AT}}</dd>
+        </dl>
+      </details>
     </header>
 
-    <nav class="local-nav" aria-label="教材内の目次">
-      <a href="#visual">01 全体像</a>
-      <a href="#explanation">02 流れ</a>
-      <a href="#evidence">03 根拠</a>
-      <a href="#quiz">04 クイズ</a>
+    <nav class="contents" aria-label="教材の目次">
+      <a href="#concept-1">1. {{CONCEPT_1_NAV}}</a>
+      <a href="#concept-2">2. {{CONCEPT_2_NAV}}</a>
+      <a href="#concept-3">3. {{CONCEPT_3_NAV}}</a>
+      <a href="#quiz">4択クイズ</a>
     </nav>
 
-    <section class="learning-section" id="visual" data-learning-section="visual">
-      <div class="section-heading">
-        <span class="section-number" aria-hidden="true">01</span>
-        <div>
-          <h2>まず、全体像を見る</h2>
-          <p>{{DIAGRAM_READING_GUIDE}}</p>
-        </div>
-      </div>
-      <figure data-visual-kind="diagram">
-        <div class="diagram-frame">
-          <!-- Replace this scaffold SVG with the validated diagram-design SVG. -->
-          <svg role="img" aria-labelledby="repo-eli5-template-title repo-eli5-template-desc" viewBox="0 0 1280 720">
-            <title id="repo-eli5-template-title">{{REPOSITORY_NAME}}の主要フロー</title>
-            <desc id="repo-eli5-template-desc">{{DIAGRAM_TEXT_ALTERNATIVE}}</desc>
-            <defs>
-              <marker id="template-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"></polygon>
-              </marker>
-              <marker id="template-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"></polygon>
-              </marker>
-              <marker id="template-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
-                <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"></polygon>
-              </marker>
-            </defs>
-            <rect width="1280" height="720" fill="#f5f5f5"></rect>
-
-            <!-- Connectors first. -->
-            <path d="M288 300 H400" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#template-arrow)"></path>
-            <path d="M640 300 H752" fill="none" stroke="#eb6c36" stroke-width="2" marker-end="url(#template-arrow-accent)"></path>
-            <path d="M992 300 H1104" fill="none" stroke="#4f5d75" stroke-width="2" marker-end="url(#template-arrow)"></path>
-
-            <!-- Nodes. -->
-            <g>
-              <rect x="48" y="240" width="240" height="120" rx="8" fill="#ffffff" stroke="#2d3142"></rect>
-              <text x="168" y="288" text-anchor="middle" fill="#2d3142" font-family="system-ui, sans-serif" font-size="16" font-weight="700">{{INPUT_NODE}}</text>
-              <text x="168" y="320" text-anchor="middle" fill="#4f5d75" font-family="monospace" font-size="12">{{INPUT_SUBLABEL}}</text>
-            </g>
-            <g>
-              <rect x="400" y="240" width="240" height="120" rx="8" fill="#fff0e9" stroke="#eb6c36" stroke-width="2"></rect>
-              <text x="520" y="288" text-anchor="middle" fill="#2d3142" font-family="system-ui, sans-serif" font-size="16" font-weight="700">{{CORE_NODE}}</text>
-              <text x="520" y="320" text-anchor="middle" fill="#4f5d75" font-family="monospace" font-size="12">{{CORE_SUBLABEL}}</text>
-            </g>
-            <g>
-              <rect x="752" y="240" width="240" height="120" rx="8" fill="#ffffff" stroke="#2d3142"></rect>
-              <text x="872" y="288" text-anchor="middle" fill="#2d3142" font-family="system-ui, sans-serif" font-size="16" font-weight="700">{{BOUNDARY_NODE}}</text>
-              <text x="872" y="320" text-anchor="middle" fill="#4f5d75" font-family="monospace" font-size="12">{{BOUNDARY_SUBLABEL}}</text>
-            </g>
-            <g>
-              <rect x="1104" y="240" width="128" height="120" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75"></rect>
-              <text x="1168" y="288" text-anchor="middle" fill="#2d3142" font-family="system-ui, sans-serif" font-size="16" font-weight="700">{{RESULT_NODE}}</text>
-              <text x="1168" y="320" text-anchor="middle" fill="#4f5d75" font-family="monospace" font-size="12">{{RESULT_SUBLABEL}}</text>
-            </g>
+    <section class="explanation" data-learning-section="explanation" aria-label="三つの仕組み">
+      <article id="concept-1" class="chapter" data-teaching-unit="concept-1">
+        <header class="chapter-heading"><p class="chapter-number" aria-hidden="true">01</p><h2>{{CONCEPT_1_TITLE}}</h2></header>
+        <p class="concept-intro" data-concept-intro>{{CONCEPT_1_INTRO}}</p>
+        <aside class="analogy"><strong>たとえるなら:</strong> {{CONCEPT_1_ANALOGY}}</aside>
+        <p class="figure-intro">この図では、{{CONCEPT_1_FIGURE_PURPOSE}}</p>
+        <figure class="diagram" data-visual-kind="diagram">
+          <p class="diagram-hint">図は横にスクロールできます。</p>
+          <svg role="img" aria-labelledby="concept-1-title concept-1-desc" viewBox="0 0 880 360">
+            <title id="concept-1-title">{{CONCEPT_1_DIAGRAM_TITLE}}</title>
+            <desc id="concept-1-desc">{{CONCEPT_1_DIAGRAM_DESC}}</desc>
+            <rect x="32" y="112" width="216" height="136" rx="18" fill="#eaf4ff" stroke="#1766b1" stroke-width="3"></rect>
+            <text x="140" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_1_NODE_A}}</text>
+            <path d="M 248 180 L 328 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 316 170 L 328 180 L 316 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="328" y="112" width="224" height="136" rx="18" fill="#fff0e8" stroke="#d9612c" stroke-width="3"></rect>
+            <text x="440" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_1_NODE_B}}</text>
+            <path d="M 552 180 L 632 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 620 170 L 632 180 L 620 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="632" y="112" width="216" height="136" rx="18" fill="#eaf7f1" stroke="#17664c" stroke-width="3"></rect>
+            <text x="740" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_1_NODE_C}}</text>
           </svg>
-        </div>
-        <figcaption class="diagram-note">{{DIAGRAM_SCOPE_NOTE}}</figcaption>
-      </figure>
+          <figcaption>{{CONCEPT_1_CAPTION}}</figcaption>
+        </figure>
+        <p class="diagram-reading" data-diagram-reading>{{CONCEPT_1_READING}}</p>
+        <details class="evidence" data-evidence-group><summary>この説明を支えるコードを見る</summary><ul class="evidence-list"><li data-evidence-kind="fact"><span class="evidence-label">確認済み</span><span data-evidence-description>{{CONCEPT_1_FACT}}</span><a class="source-ref" href="file://{{CONCEPT_1_SOURCE_FILE}}"><code data-source-ref>{{CONCEPT_1_SOURCE}}</code></a></li></ul></details>
+      </article>
+
+      <article id="concept-2" class="chapter" data-teaching-unit="concept-2">
+        <header class="chapter-heading"><p class="chapter-number" aria-hidden="true">02</p><h2>{{CONCEPT_2_TITLE}}</h2></header>
+        <p class="concept-intro" data-concept-intro>{{CONCEPT_2_INTRO}}</p>
+        <aside class="analogy"><strong>たとえるなら:</strong> {{CONCEPT_2_ANALOGY}}</aside>
+        <p class="figure-intro">この図では、{{CONCEPT_2_FIGURE_PURPOSE}}</p>
+        <figure class="diagram" data-visual-kind="diagram">
+          <p class="diagram-hint">図は横にスクロールできます。</p>
+          <svg role="img" aria-labelledby="concept-2-title concept-2-desc" viewBox="0 0 880 360">
+            <title id="concept-2-title">{{CONCEPT_2_DIAGRAM_TITLE}}</title>
+            <desc id="concept-2-desc">{{CONCEPT_2_DIAGRAM_DESC}}</desc>
+            <rect x="32" y="112" width="216" height="136" rx="18" fill="#eaf4ff" stroke="#1766b1" stroke-width="3"></rect>
+            <text x="140" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_2_NODE_A}}</text>
+            <path d="M 248 180 L 328 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 316 170 L 328 180 L 316 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="328" y="112" width="224" height="136" rx="18" fill="#fff0e8" stroke="#d9612c" stroke-width="3"></rect>
+            <text x="440" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_2_NODE_B}}</text>
+            <path d="M 552 180 L 632 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 620 170 L 632 180 L 620 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="632" y="112" width="216" height="136" rx="18" fill="#eaf7f1" stroke="#17664c" stroke-width="3"></rect>
+            <text x="740" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_2_NODE_C}}</text>
+          </svg>
+          <figcaption>{{CONCEPT_2_CAPTION}}</figcaption>
+        </figure>
+        <p class="diagram-reading" data-diagram-reading>{{CONCEPT_2_READING}}</p>
+        <details class="evidence" data-evidence-group><summary>この説明を支えるコードを見る</summary><ul class="evidence-list"><li data-evidence-kind="fact"><span class="evidence-label">確認済み</span><span data-evidence-description>{{CONCEPT_2_FACT}}</span><a class="source-ref" href="file://{{CONCEPT_2_SOURCE_FILE}}"><code data-source-ref>{{CONCEPT_2_SOURCE}}</code></a></li></ul></details>
+      </article>
+
+      <article id="concept-3" class="chapter" data-teaching-unit="concept-3">
+        <header class="chapter-heading"><p class="chapter-number" aria-hidden="true">03</p><h2>{{CONCEPT_3_TITLE}}</h2></header>
+        <p class="concept-intro" data-concept-intro>{{CONCEPT_3_INTRO}}</p>
+        <aside class="analogy"><strong>たとえるなら:</strong> {{CONCEPT_3_ANALOGY}}</aside>
+        <p class="figure-intro">この図では、{{CONCEPT_3_FIGURE_PURPOSE}}</p>
+        <figure class="diagram" data-visual-kind="diagram">
+          <p class="diagram-hint">図は横にスクロールできます。</p>
+          <svg role="img" aria-labelledby="concept-3-title concept-3-desc" viewBox="0 0 880 360">
+            <title id="concept-3-title">{{CONCEPT_3_DIAGRAM_TITLE}}</title>
+            <desc id="concept-3-desc">{{CONCEPT_3_DIAGRAM_DESC}}</desc>
+            <rect x="32" y="112" width="216" height="136" rx="18" fill="#eaf4ff" stroke="#1766b1" stroke-width="3"></rect>
+            <text x="140" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_3_NODE_A}}</text>
+            <path d="M 248 180 L 328 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 316 170 L 328 180 L 316 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="328" y="112" width="224" height="136" rx="18" fill="#fff0e8" stroke="#d9612c" stroke-width="3"></rect>
+            <text x="440" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_3_NODE_B}}</text>
+            <path d="M 552 180 L 632 180" fill="none" stroke="#1766b1" stroke-width="5"></path><path d="M 620 170 L 632 180 L 620 190" fill="none" stroke="#1766b1" stroke-width="5"></path>
+            <rect x="632" y="112" width="216" height="136" rx="18" fill="#eaf7f1" stroke="#17664c" stroke-width="3"></rect>
+            <text x="740" y="186" text-anchor="middle" fill="#172238" font-size="26" font-weight="700">{{CONCEPT_3_NODE_C}}</text>
+          </svg>
+          <figcaption>{{CONCEPT_3_CAPTION}}</figcaption>
+        </figure>
+        <p class="diagram-reading" data-diagram-reading>{{CONCEPT_3_READING}}</p>
+        <details class="evidence" data-evidence-group><summary>この説明を支えるコードを見る</summary><ul class="evidence-list"><li data-evidence-kind="fact"><span class="evidence-label">確認済み</span><span data-evidence-description>{{CONCEPT_3_FACT}}</span><a class="source-ref" href="file://{{CONCEPT_3_SOURCE_FILE}}"><code data-source-ref>{{CONCEPT_3_SOURCE}}</code></a></li></ul></details>
+      </article>
     </section>
 
-    <section class="learning-section" id="explanation" data-learning-section="explanation">
-      <div class="section-heading">
-        <span class="section-number" aria-hidden="true">02</span>
-        <div>
-          <h2>処理を一本の線で追う</h2>
-          <p>directory一覧ではなく、入力から結果までの責任の受け渡しを追います。</p>
-        </div>
-      </div>
-      <p class="summary-line" data-repo-summary>{{ONE_SENTENCE_SUMMARY}}</p>
-      <div class="trace-layout">
-        <ol class="trace">
-          <li class="trace-step" data-flow-step>
-            <span class="trace-index">01</span>
-            <div class="trace-copy">
-              <h3>{{FLOW_STEP_1_TITLE}}</h3>
-              <p>{{FLOW_STEP_1_BODY}}</p>
-            </div>
-          </li>
-          <li class="trace-step" data-flow-step>
-            <span class="trace-index">02</span>
-            <div class="trace-copy">
-              <h3>{{FLOW_STEP_2_TITLE}}</h3>
-              <p>{{FLOW_STEP_2_BODY}}</p>
-            </div>
-          </li>
-          <li class="trace-step" data-flow-step>
-            <span class="trace-index">03</span>
-            <div class="trace-copy">
-              <h3>{{FLOW_STEP_3_TITLE}}</h3>
-              <p>{{FLOW_STEP_3_BODY}}</p>
-            </div>
-          </li>
-          <li class="trace-step" data-flow-step>
-            <span class="trace-index">04</span>
-            <div class="trace-copy">
-              <h3>{{FLOW_STEP_4_TITLE}}</h3>
-              <p>{{FLOW_STEP_4_BODY}}</p>
-            </div>
-          </li>
-        </ol>
+    <aside class="unverified" data-evidence-kind="unverified"><h2>この教材で確認していないこと</h2><p>{{UNVERIFIED_NOTE}}</p></aside>
 
-        <aside class="evidence-panel" aria-labelledby="boundary-heading">
-          <h3 id="boundary-heading">押さえる境界</h3>
-          <ul>
-            <li><strong>Entry</strong><br>{{ENTRY_BOUNDARY}}</li>
-            <li><strong>State</strong><br>{{STATE_BOUNDARY}}</li>
-            <li><strong>Output</strong><br>{{OUTPUT_BOUNDARY}}</li>
-            <li><strong>Test</strong><br>{{TEST_BOUNDARY}}</li>
-          </ul>
-        </aside>
-      </div>
+    <section id="quiz" class="quiz" data-learning-section="quiz" data-repo-eli5-quiz>
+      <p class="quiz-label">理解を確かめる</p>
+      <h2>三つの仕組みを4択で確かめます</h2>
+      <p class="quiz-intro">回答すると、その場で正誤と理由が表示されます。間違えても、理由を読んで次へ進めます。</p>
+      <p class="quiz-progress" data-quiz-progress role="status" aria-live="polite" aria-atomic="true">問題 1 / 3</p>
+      <form>
+        <fieldset class="question" data-quiz-question data-question-kind="choice" data-correct="q1-a" tabindex="-1">
+          <legend>{{QUIZ_1_QUESTION}}</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="q1" value="q1-a"><span>{{QUIZ_1_A}}</span></label>
+            <label class="choice"><input type="radio" name="q1" value="q1-b"><span>{{QUIZ_1_B}}</span></label>
+            <label class="choice"><input type="radio" name="q1" value="q1-c"><span>{{QUIZ_1_C}}</span></label>
+            <label class="choice"><input type="radio" name="q1" value="q1-d"><span>{{QUIZ_1_D}}</span></label>
+          </div>
+          <div class="quiz-actions"><button class="button button-primary" type="button" data-quiz-action="check">答えを確認する</button><button class="button button-secondary" type="button" data-quiz-action="next" hidden>次の問題へ</button></div>
+          <p class="feedback" data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+          <div class="answer-panel" data-answer-panel hidden><p>{{QUIZ_1_REASON}}</p></div>
+        </fieldset>
+
+        <fieldset class="question" data-quiz-question data-question-kind="choice" data-correct="q2-a" tabindex="-1" hidden>
+          <legend>{{QUIZ_2_QUESTION}}</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="q2" value="q2-a"><span>{{QUIZ_2_A}}</span></label>
+            <label class="choice"><input type="radio" name="q2" value="q2-b"><span>{{QUIZ_2_B}}</span></label>
+            <label class="choice"><input type="radio" name="q2" value="q2-c"><span>{{QUIZ_2_C}}</span></label>
+            <label class="choice"><input type="radio" name="q2" value="q2-d"><span>{{QUIZ_2_D}}</span></label>
+          </div>
+          <div class="quiz-actions"><button class="button button-primary" type="button" data-quiz-action="check">答えを確認する</button><button class="button button-secondary" type="button" data-quiz-action="next" hidden>次の問題へ</button></div>
+          <p class="feedback" data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+          <div class="answer-panel" data-answer-panel hidden><p>{{QUIZ_2_REASON}}</p></div>
+        </fieldset>
+
+        <fieldset class="question" data-quiz-question data-question-kind="choice" data-correct="q3-a" tabindex="-1" hidden>
+          <legend>{{QUIZ_3_QUESTION}}</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="q3" value="q3-a"><span>{{QUIZ_3_A}}</span></label>
+            <label class="choice"><input type="radio" name="q3" value="q3-b"><span>{{QUIZ_3_B}}</span></label>
+            <label class="choice"><input type="radio" name="q3" value="q3-c"><span>{{QUIZ_3_C}}</span></label>
+            <label class="choice"><input type="radio" name="q3" value="q3-d"><span>{{QUIZ_3_D}}</span></label>
+          </div>
+          <div class="quiz-actions"><button class="button button-primary" type="button" data-quiz-action="check">答えを確認する</button><button class="button button-secondary" type="button" data-quiz-action="next" hidden>結果を見る</button></div>
+          <p class="feedback" data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
+          <div class="answer-panel" data-answer-panel hidden><p>{{QUIZ_3_REASON}}</p></div>
+        </fieldset>
+      </form>
+      <div class="quiz-complete" data-quiz-complete tabindex="-1" hidden><h3>確認は完了です</h3><p>三つの仕組みを、図と理由に結び付けて振り返りました。</p><button class="button button-primary" type="button" data-quiz-action="reset">最初から解き直す</button></div>
+      <noscript><style>[data-quiz-question][hidden], [data-answer-panel][hidden] { display: block !important; }</style>クイズの回答確認にはJavaScriptが必要です。JavaScriptが無効な場合は、問題と理由をすべて表示します。</noscript>
     </section>
-
-    <section class="learning-section" id="evidence" data-learning-section="evidence">
-      <div class="section-heading">
-        <span class="section-number" aria-hidden="true">03</span>
-        <div>
-          <h2>事実と推論を分ける</h2>
-          <p>コードで確認したことと、実行しなければ確定できないことを混ぜません。</p>
-        </div>
-      </div>
-      <div class="evidence-panel">
-        <ul>
-          <li data-evidence-kind="fact">
-            <span class="evidence-kind">✓ 確認済み</span>
-            {{CONFIRMED_FACT_1}}
-            <a href="file:///ABSOLUTE/PATH/TO/FILE_1"><code data-source-ref>{{ABSOLUTE_PATH_1}}:{{LINE_1}}</code></a>
-          </li>
-          <li data-evidence-kind="fact">
-            <span class="evidence-kind">✓ 確認済み</span>
-            {{CONFIRMED_FACT_2}}
-            <a href="file:///ABSOLUTE/PATH/TO/FILE_2"><code data-source-ref>{{ABSOLUTE_PATH_2}}:{{LINE_2}}</code></a>
-          </li>
-          <li data-evidence-kind="inference">
-            <span class="evidence-kind">△ 推論</span>
-            {{INFERENCE_OR_REMOVE_THIS_ITEM}}
-          </li>
-          <li data-evidence-kind="unverified">
-            <span class="evidence-kind">! 未検証</span>
-            {{UNVERIFIED_RUNTIME_OR_REMOVE_THIS_ITEM}}
-          </li>
-        </ul>
-      </div>
-    </section>
-
-    <section class="learning-section" id="quiz" data-learning-section="quiz" data-repo-eli5-quiz>
-      <div class="section-heading">
-        <span class="section-number" aria-hidden="true">04</span>
-        <div>
-          <h2>自分の理解を確かめる</h2>
-          <p>回答は外部へ送信されません。自分のペースで観点を照合できます。</p>
-        </div>
-      </div>
-
-      <div class="quiz-shell">
-        <div class="quiz-progress-row">
-          <p data-quiz-progress role="status" aria-live="polite" aria-atomic="true">問題 1 / 2</p>
-        </div>
-
-        <form>
-          <fieldset data-quiz-question data-question-kind="reflection" tabindex="-1">
-            <legend>{{REFLECTION_QUESTION}}</legend>
-            <p class="prompt-note">図をいったん見ずに、2〜4段階で書いてみてください。</p>
-            <label class="reflection-label">
-              あなたの説明
-              <textarea name="reflection" placeholder="入力 → 処理 → 結果の順に書く"></textarea>
-            </label>
-            <div class="quiz-actions">
-              <button class="button button-primary" type="button" data-quiz-action="check">観点を確認する</button>
-              <button class="button button-secondary" type="button" data-quiz-action="next" hidden>次の問題へ</button>
-            </div>
-            <p data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
-            <div data-answer-panel hidden>
-              <h3>次の観点が入っているかを照合してください</h3>
-              <ul data-answer-points>
-                <li>{{REFLECTION_POINT_1}}</li>
-                <li>{{REFLECTION_POINT_2}}</li>
-                <li>{{REFLECTION_POINT_3}}</li>
-              </ul>
-            </div>
-          </fieldset>
-
-          <fieldset data-quiz-question data-question-kind="choice" data-correct="q2-a" tabindex="-1" hidden>
-            <legend>{{APPLICATION_QUESTION}}</legend>
-            <p class="prompt-note">条件を一つ変えたときに、最初に確認すべき境界を選んでください。</p>
-            <div class="choice-list">
-              <label class="choice">
-                <input type="radio" name="application" value="q2-a">
-                <span>{{CORRECT_CHOICE}}</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="application" value="q2-b">
-                <span>{{DISTRACTOR_1}}</span>
-              </label>
-              <label class="choice">
-                <input type="radio" name="application" value="q2-c">
-                <span>{{DISTRACTOR_2}}</span>
-              </label>
-            </div>
-            <div class="quiz-actions">
-              <button class="button button-primary" type="button" data-quiz-action="check">回答を確認する</button>
-              <button class="button button-secondary" type="button" data-quiz-action="next" hidden>完了する</button>
-            </div>
-            <p data-quiz-feedback role="status" aria-live="polite" aria-atomic="true"></p>
-            <div data-answer-panel hidden>
-              <h3>判断の根拠</h3>
-              <p>{{APPLICATION_EXPLANATION}}</p>
-            </div>
-          </fieldset>
-        </form>
-
-        <div class="quiz-complete" data-quiz-complete tabindex="-1" hidden>
-          <h3>確認は完了です</h3>
-          <p>図と根拠へ戻り、迷った箇所だけを読み直せます。</p>
-          <button class="button button-secondary" type="button" data-quiz-action="reset">最初から振り返る</button>
-        </div>
-
-        <noscript>
-          <style>[data-quiz-question][hidden], [data-answer-panel][hidden] { display: block !important; }</style>
-          JavaScriptが無効なため、一問ずつの表示と回答判定は動きません。問題と確認観点はすべて表示しています。
-        </noscript>
-      </div>
-    </section>
-
-    <footer class="page-footer">
-      repo-eli5 · {{GENERATED_SCOPE}} · runtimeは明記した範囲だけを検証
-    </footer>
+    <footer class="footer">{{FOOTER_NOTE}}</footer>
   </main>
 
   <script data-repo-eli5-controller>
@@ -1000,10 +390,6 @@
         });
         complete.hidden = true;
         progress.textContent = `問題 ${current + 1} / ${questions.length}`;
-        quiz.style.setProperty(
-          "--quiz-completion",
-          `${String(((current + 1) / questions.length) * 100)}%`,
-        );
         questions[current].focus();
       };
 
@@ -1015,9 +401,8 @@
         question.querySelector('[data-quiz-action="check"]').disabled = false;
         question.querySelectorAll('input[type="radio"]').forEach((input) => {
           input.checked = false;
+          input.disabled = false;
         });
-        const textarea = question.querySelector("textarea");
-        if (textarea) textarea.value = "";
       };
 
       questions.forEach((question, index) => {
@@ -1027,33 +412,17 @@
         const answerPanel = question.querySelector("[data-answer-panel]");
 
         check.addEventListener("click", () => {
-          if (question.dataset.questionKind === "reflection") {
-            const response = question.querySelector("textarea").value.trim();
-            if (!response) {
-              feedback.textContent = "先に自分の説明を書いてください。";
-              question.querySelector("textarea").focus();
-              return;
-            }
-            question.dataset.state = "reviewed";
-            feedback.textContent = "→ 確認観点を表示しました。書いた内容と照合してください。";
-          } else {
-            const selected = question.querySelector('input[type="radio"]:checked');
-            if (!selected) {
-              feedback.textContent = "選択肢を一つ選んでください。";
-              return;
-            }
-            const correct = selected.value === question.dataset.correct;
-            question.dataset.state = correct ? "correct" : "incorrect";
-            feedback.textContent = correct
-              ? "✓ 正解です。判断の根拠も確認してください。"
-              : "× どの境界が順序を管理するかを確認し、選び直してください。";
-            if (!correct) {
-              answerPanel.hidden = false;
-              next.hidden = true;
-              return;
-            }
+          const selected = question.querySelector('input[type="radio"]:checked');
+          if (!selected) {
+            feedback.textContent = "選択肢を一つ選んでください。";
+            return;
           }
-
+          const correct = selected.value === question.dataset.correct;
+          question.dataset.state = correct ? "correct" : "incorrect";
+          feedback.textContent = correct ? "○ 正解です。理由を確認してください。" : "× 不正解です。正解と理由を確認してください。";
+          question.querySelectorAll('input[type="radio"]').forEach((input) => {
+            input.disabled = true;
+          });
           answerPanel.hidden = false;
           next.hidden = false;
           check.disabled = true;
@@ -1068,7 +437,6 @@
           questions[index].hidden = true;
           complete.hidden = false;
           progress.textContent = "確認完了";
-          quiz.style.setProperty("--quiz-completion", "100%");
           complete.focus();
         });
       });
