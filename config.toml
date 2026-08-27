@@ -204,9 +204,6 @@ enabled = false
 [plugins."visualize@openai-bundled"]
 enabled = true
 
-[plugins."pm-toolkit@pm-skills"]
-enabled = false
-
 [plugins."pm-product-strategy@pm-skills"]
 enabled = true
 
@@ -216,20 +213,11 @@ enabled = true
 [plugins."pm-market-research@pm-skills"]
 enabled = true
 
-[plugins."pm-data-analytics@pm-skills"]
-enabled = false
-
 [plugins."pm-marketing-growth@pm-skills"]
 enabled = true
 
 [plugins."pm-go-to-market@pm-skills"]
 enabled = true
-
-[plugins."pm-execution@pm-skills"]
-enabled = false
-
-[plugins."pm-ai-shipping@pm-skills"]
-enabled = false
 
 [plugins."chrome@openai-bundled"]
 enabled = true
