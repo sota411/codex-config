@@ -1,6 +1,0 @@
-interface:
-  display_name: "HTMLリポジトリ図解チューター"
-  short_description: "リポジトリや差分を、図・解説・クイズ入りのHTML教材にする"
-  default_prompt: "$repo-eli5 を使って、このローカルリポジトリを図・解説・クイズ入りのHTML教材として説明してください。"
-policy:
-  allow_implicit_invocation: true
