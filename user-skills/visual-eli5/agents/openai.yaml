@@ -1,0 +1,6 @@
+interface:
+  display_name: "Visual ELI5"
+  short_description: "大きな図と少ない言葉で、どんな話題もHTML解説にする"
+  default_prompt: "$visual-eli5 を使って、DNSの仕組みを大きな図と少ない言葉で説明してください。"
+policy:
+  allow_implicit_invocation: false
