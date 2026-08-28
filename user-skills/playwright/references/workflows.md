@@ -11,6 +11,7 @@ pwcli open https://example.com
 pwcli snapshot
 pwcli click e3
 pwcli snapshot
+pwcli close
 ```
 
 ## Form submission
@@ -23,6 +24,7 @@ pwcli fill e2 "password123"
 pwcli click e3
 pwcli snapshot
 pwcli screenshot
+pwcli close
 ```
 
 ## Data extraction
@@ -32,6 +34,7 @@ pwcli open https://example.com
 pwcli snapshot
 pwcli eval "document.title"
 pwcli eval "el => el.textContent" e12
+pwcli close
 ```
 
 ## Debugging and inspection
@@ -50,6 +53,7 @@ pwcli tracing-start
 # reproduce the issue
 pwcli tracing-stop
 pwcli screenshot
+pwcli close
 ```
 
 ## Sessions
@@ -60,6 +64,8 @@ Use sessions to isolate work across projects:
 pwcli --session marketing open https://example.com
 pwcli --session marketing snapshot
 pwcli --session checkout open https://example.com/checkout
+pwcli --session marketing close
+pwcli --session checkout close
 ```
 
 Or set the session once:
@@ -67,6 +73,7 @@ Or set the session once:
 ```bash
 export PLAYWRIGHT_CLI_SESSION=checkout
 pwcli open https://example.com/checkout
+pwcli close
 ```
 
 ## Configuration file
@@ -93,3 +100,4 @@ Minimal example:
 - If an element ref fails, run `pwcli snapshot` again and retry.
 - If the page looks wrong, re-open with `--headed` and resize the window.
 - If a flow depends on prior state, use a named `--session`.
+- Close every session when its workflow finishes. Use `kill-all` only for confirmed stale or zombie daemons.

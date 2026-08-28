@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -751,15 +754,64 @@ class ReadmeGuardTest(unittest.TestCase):
                 encoding="utf-8",
             )
 
+            node = shutil.which("node")
+            if node is None:
+                self.fail("node is required for the Playwright daemon boundary test")
+            daemon_script = (
+                root
+                / "node_modules"
+                / "playwright-core"
+                / "lib"
+                / "entry"
+                / "cliDaemon.js"
+            )
+            daemon_script.parent.mkdir(parents=True)
+            daemon_script.write_text(
+                "setTimeout(() => {}, 60_000);\n",
+                encoding="utf-8",
+            )
+            env = os.environ.copy()
+            env["CODEX_THREAD_ID"] = "session-1"
+            daemon = subprocess.Popen(
+                [node, str(daemon_script), "fake-profile"],
+                env=env,
+                start_new_session=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            self.addCleanup(self.stop_process_group, daemon)
+            deadline = time.monotonic() + 2
+            while time.monotonic() < deadline:
+                try:
+                    cmdline = Path(f"/proc/{daemon.pid}/cmdline").read_bytes()
+                except FileNotFoundError:
+                    break
+                if str(daemon_script).encode() in cmdline:
+                    break
+                time.sleep(0.01)
+            else:
+                self.fail("fake Playwright daemon did not start")
+
             blocked = self.run_memo_stop(root, state)
 
             self.assert_readme_blocked(blocked)
+            self.assertIsNone(daemon.poll())
 
             (root / "README.md").write_text("# Test\n\nUpdated.\n", encoding="utf-8")
             allowed = self.run_memo_stop(root, state)
 
             self.assertEqual(allowed.returncode, 0, allowed.stderr)
             self.assertEqual(allowed.stdout, "")
+            daemon.wait(timeout=2)
+
+    def stop_process_group(self, process: subprocess.Popen[bytes]) -> None:
+        if process.poll() is not None:
+            return
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        process.wait(timeout=2)
 
     def test_memo_stop_accepts_explicit_no_update_decision(self) -> None:
         with (

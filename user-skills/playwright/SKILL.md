@@ -35,10 +35,10 @@ Once `npx` is present, proceed with the wrapper script. A global install of `pla
 
 ```bash
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
+export PWCLI="$CODEX_HOME/user-skills/playwright/scripts/playwright_cli.sh"
 ```
 
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
+This user-scoped skill lives under `$CODEX_HOME/user-skills` (default: `~/.codex/user-skills`).
 
 ## Quick start
 
@@ -51,6 +51,7 @@ Use the wrapper script:
 "$PWCLI" type "Playwright"
 "$PWCLI" press Enter
 "$PWCLI" screenshot
+"$PWCLI" close
 ```
 
 If the user prefers a global install, this is also valid:
@@ -67,6 +68,7 @@ playwright-cli --help
 3. Interact using refs from the latest snapshot.
 4. Re-snapshot after navigation or significant DOM changes.
 5. Capture artifacts (screenshot, pdf, traces) when useful.
+6. Close the browser session when the workflow finishes, including after a failed interaction.
 
 Minimal loop:
 
@@ -75,6 +77,7 @@ Minimal loop:
 "$PWCLI" snapshot
 "$PWCLI" click e3
 "$PWCLI" snapshot
+"$PWCLI" close
 ```
 
 ## When to snapshot again
@@ -128,6 +131,7 @@ The wrapper script uses `npx --package @playwright/cli playwright-cli` so the CL
 ```
 
 Prefer the wrapper unless the repository already standardizes on a global install.
+Inside Codex, the wrapper uses `CODEX_THREAD_ID` as the default session name. An explicit `--session`/`-s` or `PLAYWRIGHT_CLI_SESSION` still takes precedence.
 
 ## References
 
@@ -143,5 +147,7 @@ Open only what you need:
 - Prefer explicit commands over `eval` and `run-code` unless needed.
 - When you do not have a fresh snapshot, use placeholder refs like `eX` and say why; do not bypass refs with `run-code`.
 - Use `--headed` when a visual check will help.
+- Always close the browser when the workflow finishes. Use `"$PWCLI" close` for the default session, or pass the same explicit `--session`/`-s` selector used to open a named session. The Codex Stop hook is only a safety net for interrupted or missed cleanup.
+- Reserve `"$PWCLI" kill-all` for confirmed stale or zombie sessions because it affects every Playwright CLI daemon owned by the user.
 - When capturing artifacts in this repo, use `output/playwright/` and avoid introducing new top-level artifact folders.
 - Default to CLI commands and workflows, not Playwright test specs.

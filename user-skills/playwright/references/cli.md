@@ -4,11 +4,11 @@ Use the wrapper script unless the CLI is already installed globally:
 
 ```bash
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
+export PWCLI="$CODEX_HOME/user-skills/playwright/scripts/playwright_cli.sh"
 "$PWCLI" --help
 ```
 
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
+This user-scoped skill lives under `$CODEX_HOME/user-skills` (default: `~/.codex/user-skills`).
 
 Optional convenience alias:
 
@@ -20,7 +20,6 @@ alias pwcli="$PWCLI"
 
 ```bash
 pwcli open https://example.com
-pwcli close
 pwcli snapshot
 pwcli click e3
 pwcli dblclick e7
@@ -39,6 +38,7 @@ pwcli dialog-accept
 pwcli dialog-accept "confirmation text"
 pwcli dialog-dismiss
 pwcli resize 1920 1080
+pwcli close
 ```
 
 ## Navigation
@@ -101,11 +101,12 @@ pwcli tracing-stop
 
 ## Sessions
 
-Use a named session to isolate work:
+Inside Codex, the wrapper automatically uses `CODEX_THREAD_ID` as the session name. Set a name explicitly only when the workflow needs a separate session:
 
 ```bash
 pwcli --session todo open https://demo.playwright.dev/todomvc
 pwcli --session todo snapshot
+pwcli --session todo close
 ```
 
 Or set an environment variable once:
@@ -113,4 +114,9 @@ Or set an environment variable once:
 ```bash
 export PLAYWRIGHT_CLI_SESSION=todo
 pwcli open https://demo.playwright.dev/todomvc
+pwcli close
 ```
+
+Close an explicitly named session with the same `--session`/`-s` selector. When `PLAYWRIGHT_CLI_SESSION` remains set, `pwcli close` uses that configured session.
+
+Use `pwcli kill-all` only after confirming that every remaining Playwright CLI daemon is stale or zombie; it is not routine cleanup.

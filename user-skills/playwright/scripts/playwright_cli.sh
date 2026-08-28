@@ -9,7 +9,10 @@ fi
 has_session_flag="false"
 for arg in "$@"; do
   case "$arg" in
-    --session|--session=*)
+    --)
+      break
+      ;;
+    -s|-s=*|--session|--session=*)
       has_session_flag="true"
       break
       ;;
@@ -17,8 +20,9 @@ for arg in "$@"; do
 done
 
 cmd=(npx --yes --package @playwright/cli playwright-cli)
-if [[ "${has_session_flag}" != "true" && -n "${PLAYWRIGHT_CLI_SESSION:-}" ]]; then
-  cmd+=(--session "${PLAYWRIGHT_CLI_SESSION}")
+default_session="${PLAYWRIGHT_CLI_SESSION:-${CODEX_THREAD_ID:-}}"
+if [[ "${has_session_flag}" != "true" && -n "${default_session}" ]]; then
+  cmd+=(--session "${default_session}")
 fi
 cmd+=("$@")
 

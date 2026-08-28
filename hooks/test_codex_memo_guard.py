@@ -180,9 +180,12 @@ class MemoGuardTest(unittest.TestCase):
         if payload is None:
             payload = {
                 "cwd": str(self.root),
+                "hook_event_name": "Stop",
                 "session_id": "session-1",
                 "turn_id": "turn-1",
             }
+        elif mode == "stop":
+            payload = {"hook_event_name": "Stop", **payload}
         env = os.environ.copy()
         env["HOME"] = str(self.home)
         if stub_codex is not None:

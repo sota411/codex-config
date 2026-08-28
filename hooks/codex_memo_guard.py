@@ -17,6 +17,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import codex_readme_guard
+import codex_playwright_reaper
 
 
 # 既存 memo.md の8項目 done ブロックにも検証を通すため、8項目の部分集合を保つこと
@@ -235,11 +236,13 @@ def run_stop() -> int:
         return 0
     if is_plan_mode_payload(payload):
         codex_readme_guard.discard_turn_state(payload)
+        codex_playwright_reaper.reap_for_payload(payload)
         return 0
     readme_stop_reason = codex_readme_guard.evaluate_turn_stop(payload)
     if readme_stop_reason is not None:
         codex_readme_guard.print_block_decision(readme_stop_reason)
         return 0
+    codex_playwright_reaper.reap_for_payload(payload)
     memo_path = memo_path_for_payload(payload)
     if not memo_path.is_file():
         return 0
@@ -800,9 +803,10 @@ def read_payload() -> dict[str, object]:
     if not raw.strip():
         raise ValueError("hook payload is empty")
     payload = json.loads(raw)
-    for key in ("cwd", "session_id", "turn_id"):
+    for key in ("cwd", "session_id", "turn_id", "hook_event_name"):
         if key not in payload:
             raise KeyError(f"hook payload missing required key: {key}")
+    codex_playwright_reaper.require_stop_event(payload)
     return payload
 
 
