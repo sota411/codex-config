@@ -1,6 +1,6 @@
 ---
 name: review
-description: Adversarially verify local code changes, staged diffs, unstaged diffs, or named files through a fresh-context Reviewer-Critic loop, then report only evidence-grounded `[must]`, `[recommend]`, and `[nits]` findings. Use when the user asks for a local code review or adversarial verification, when a repository requires a `review` skill for self-review, or before commit after implementing changes. For GitHub PR review comments that need fetching, judging, replying, fixing, committing, or pushing, use `gh-review-autofix` instead.
+description: Adversarially verify local changes through a fresh-context Reviewer-Critic loop. Use when the user asks for a local review, a repository explicitly requires it, or a change touches authentication or authorization, destructive data or schema changes, secrets, production operations, breaking public APIs, or security boundaries. Do not auto-invoke for ordinary implementation or documentation changes. For GitHub PR review comments, use `gh-review-autofix` instead.
 ---
 
 # Review
