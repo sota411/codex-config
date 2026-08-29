@@ -19,6 +19,10 @@ plan_mode_reasoning_effort = "max"
 # [tools.web_search]
 # enabled = true
 
+[tui]
+# 実行中のスピナーによる 32 ms 間隔の再描画を止め、入力処理との競合を避ける。
+animations = false
+
 [sandbox_workspace_write]
 network_access = true
 
