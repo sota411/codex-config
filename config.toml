@@ -232,6 +232,9 @@ enabled = true
 [plugins."diagram-design@diagram-design"]
 enabled = true
 
+[plugins."ponytail@ponytail"]
+enabled = true
+
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 "gpt-5.6-sol" = 4
@@ -261,6 +264,15 @@ trusted_hash = "sha256:5a1905f360dc5ee918ff4b142ee61e46210bec5a393dbce9199d0b5fb
 [hooks.state."/home/sota411/.codex/config.toml:stop:0:0"]
 trusted_hash = "sha256:6af599ca1f54c81cb752b53137449467f523ec5a41497dda046269f08dd35555"
 
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:session_start:0:0"]
+trusted_hash = "sha256:5f81d38f47448a1581c08ec877e044d9e04dd6f814dce3f2671f7a8edadd719b"
+
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:6a6f42bc3b58d6262db38bfd74d7f340fcca2b09cdb134aad365063f0bfefca4"
+
+[hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:subagent_start:0:0"]
+trusted_hash = "sha256:1423b56c1322f96c8f74c51c1e7ae9a047b904c1fa43ee9165d462fd7a6e70ef"
+
 [marketplaces.openai-primary-runtime]
 last_updated = "2026-07-16T07:35:57Z"
 source_type = "local"
@@ -282,6 +294,11 @@ last_updated = "2026-08-20T01:00:49Z"
 last_revision = "cc2f51f3fd215536cbfc0cf376ea3b513478e9cb"
 source_type = "git"
 source = "https://github.com/cathrynlavery/diagram-design.git"
+
+[marketplaces.ponytail]
+source_type = "git"
+source = "https://github.com/DietrichGebert/ponytail.git"
+ref = "2ed6c52c9d7e5e56942508591085fd45dea277d3"
 
 [agents]
 max_threads = 12
