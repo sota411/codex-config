@@ -16,7 +16,6 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-import codex_readme_guard
 import codex_playwright_reaper
 
 
@@ -235,12 +234,7 @@ def run_stop() -> int:
     if is_subagent_payload(payload):
         return 0
     if is_plan_mode_payload(payload):
-        codex_readme_guard.discard_turn_state(payload)
         codex_playwright_reaper.reap_for_payload(payload)
-        return 0
-    readme_stop_reason = codex_readme_guard.evaluate_turn_stop(payload)
-    if readme_stop_reason is not None:
-        codex_readme_guard.print_block_decision(readme_stop_reason)
         return 0
     codex_playwright_reaper.reap_for_payload(payload)
     memo_path = memo_path_for_payload(payload)

@@ -245,29 +245,18 @@ command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_env_guard.py" pre-tool-use
 timeout = 10
 statusMessage = "checking env files"
 
-[[hooks.UserPromptSubmit]]
-
-[[hooks.UserPromptSubmit.hooks]]
-type = "command"
-command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_readme_guard.py" start'
-timeout = 10
-statusMessage = "recording README baseline"
-
 [[hooks.Stop]]
 
 [[hooks.Stop.hooks]]
 type = "command"
 command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_memo_guard.py" stop'
 timeout = 10
-statusMessage = "checking README and queueing memo"
+statusMessage = "cleaning browser and queueing memo"
 
 [hooks.state]
 
 [hooks.state."/home/sota411/.codex/config.toml:pre_tool_use:0:0"]
 trusted_hash = "sha256:5a1905f360dc5ee918ff4b142ee61e46210bec5a393dbce9199d0b5fbb2cfdb0"
-
-[hooks.state."/home/sota411/.codex/config.toml:user_prompt_submit:0:0"]
-trusted_hash = "sha256:1fc8c4c67b9e7fdb3f4f355f643cc6c73d0483064dd9163f34a533e33f427f69"
 
 [hooks.state."/home/sota411/.codex/config.toml:stop:0:0"]
 trusted_hash = "sha256:6af599ca1f54c81cb752b53137449467f523ec5a41497dda046269f08dd35555"

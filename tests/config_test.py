@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 CODEX_HOME = Path(__file__).resolve().parents[1]
+ACTIVE_HOOK_EVENTS = ("PreToolUse", "Stop")
 
 
 class CodexConfigTest(unittest.TestCase):
@@ -75,7 +76,7 @@ class CodexConfigTest(unittest.TestCase):
 
     def test_hook_commands_reference_existing_scripts(self) -> None:
         hooks = self.config["hooks"]
-        for event in ("PreToolUse", "UserPromptSubmit", "Stop"):
+        for event in ACTIVE_HOOK_EVENTS:
             with self.subTest(event=event):
                 command = hooks[event][0]["hooks"][0]["command"]
                 tokens = shlex.split(os.path.expandvars(command))
@@ -84,11 +85,19 @@ class CodexConfigTest(unittest.TestCase):
 
     def test_hook_configuration_is_portable(self) -> None:
         hooks = self.config["hooks"]
-        for event in ("PreToolUse", "UserPromptSubmit", "Stop"):
+        for event in ACTIVE_HOOK_EVENTS:
             with self.subTest(event=event):
                 command = hooks[event][0]["hooks"][0]["command"]
                 self.assertIn("$HOME/.codex/hooks/", command)
                 self.assertNotIn("/home/sota411", command)
+
+    def test_readme_guard_is_disabled(self) -> None:
+        hooks = self.config["hooks"]
+        self.assertNotIn("UserPromptSubmit", hooks)
+        memo_guard = (CODEX_HOME / "hooks" / "codex_memo_guard.py").read_text(
+            encoding="utf-8"
+        )
+        self.assertNotIn("codex_readme_guard", memo_guard)
 
     def test_mcp_settings_do_not_embed_static_credentials(self) -> None:
         for name, server in self.config.get("mcp_servers", {}).items():
