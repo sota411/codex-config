@@ -180,6 +180,9 @@ realtime_conversation = true
 default_mode_request_user_input = true
 memories = true
 
+[features.context_management]
+experimental_mode = true
+
 [plugins."github@openai-curated"]
 
 [plugins."documents@openai-primary-runtime"]
