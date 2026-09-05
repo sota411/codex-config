@@ -38,6 +38,7 @@ def generate(engine_url: str) -> None:
         params = urlencode({"text": template["phrases"][name], "speaker": speaker_id})
         query = json.loads(request("/audio_query?" + params, b""))
         query["speedScale"] = template["speed_scale"]
+        query["volumeScale"] = template["volume_scale"]
         audio = request(f"/synthesis?speaker={speaker_id}", json.dumps(query).encode())
         with wave.open(io.BytesIO(audio)) as wav:
             if wav.getnframes() == 0:

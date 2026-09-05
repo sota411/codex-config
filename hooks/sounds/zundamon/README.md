@@ -7,11 +7,11 @@
 | complete.wav | 完了したのだ。 | メインの応答終了（途中報告を含む） |
 | question.wav | 追加の質問があるのだ。 | request_user_input の質問画面を開く直前 |
 
-声はノーマル、話速は1.15倍です。子エージェントと手動中断は無音です。返信本文の質問判定は行いません。再生時は `paplay` だけを使い、VOICEVOXは起動しません。
+声はノーマル、話速は1.15倍、音声の振幅は標準の1.4倍（約+2.9 dB）です。子エージェントと手動中断は無音です。返信本文の質問判定は行いません。再生時は `paplay` だけを使い、VOICEVOXは起動しません。
 
 ## 再生成
 
-`template.json` のセリフや `speed_scale` を編集してから実行します。生成スクリプトはエンジンのバージョンと話者を確認し、異なる場合はエラーにします。
+`template.json` のセリフ・話速 `speed_scale`・音量 `volume_scale` を編集してから実行します。生成スクリプトはエンジンのバージョンと話者を確認し、異なる場合はエラーにします。
 
 ```bash
 docker run --rm -d --network host --name codex-notification-voicevox \
