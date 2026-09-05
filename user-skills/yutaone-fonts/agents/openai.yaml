@@ -1,0 +1,6 @@
+interface:
+  display_name: "ゆうたONEフォント集"
+  short_description: "Webやデザインで、雰囲気に合う欧文書体を任意で採用する"
+  default_prompt: "$yutaone-fonts から今回のデザインに合う書体があれば、利用条件を確認して使ってください。"
+policy:
+  allow_implicit_invocation: true
