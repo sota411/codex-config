@@ -8,9 +8,8 @@ suppress_unstable_features_warning = true
 # WezTerm では ASCII 入力を貼り付け候補として一時保留せず、受信時に挿入する。
 disable_paste_burst = true
 
-# 通知（Linux例：成功音）。macOSなら:
-# notify = ["bash", "-lc", "afplay /System/Library/Sounds/Ping.aiff"]
-notify = ["bash", "-lc", "paplay /usr/share/sounds/freedesktop/stereo/complete.oga || aplay /usr/share/sounds/alsa/Front_Center.wav || true"]
+# 音声通知は下のメイン用 Stop / 質問用 PreToolUse フックで行う。
+notify = []
 personality = "pragmatic"
 
 tools.web_search = true
@@ -251,6 +250,15 @@ command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_env_guard.py" pre-tool-use
 timeout = 10
 statusMessage = "checking env files"
 
+[[hooks.PreToolUse]]
+matcher = "^request_user_input$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_notification_sound.py"'
+async = true
+timeout = 10
+
 [[hooks.Stop]]
 
 [[hooks.Stop.hooks]]
@@ -258,6 +266,12 @@ type = "command"
 command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_memo_guard.py" stop'
 timeout = 10
 statusMessage = "cleaning browser and queueing memo"
+
+[[hooks.Stop.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_notification_sound.py"'
+async = true
+timeout = 10
 
 [hooks.state]
 
@@ -275,6 +289,12 @@ trusted_hash = "sha256:6a6f42bc3b58d6262db38bfd74d7f340fcca2b09cdb134aad365063f0
 
 [hooks.state."ponytail@ponytail:hooks/claude-codex-hooks.json:subagent_start:0:0"]
 trusted_hash = "sha256:1423b56c1322f96c8f74c51c1e7ae9a047b904c1fa43ee9165d462fd7a6e70ef"
+
+[hooks.state."/home/sota411/.codex/config.toml:pre_tool_use:1:0"]
+trusted_hash = "sha256:81ee7461f8611fcb82fc4e1865582aca433fdcc17dda40fe90ff80d487c28073"
+
+[hooks.state."/home/sota411/.codex/config.toml:stop:0:1"]
+trusted_hash = "sha256:3b373a9923ed2d56434918715b859d5c8bb5e10141e3a373a5a52a663181806b"
 
 [marketplaces.openai-primary-runtime]
 last_updated = "2026-07-16T07:35:57Z"

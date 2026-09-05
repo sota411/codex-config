@@ -40,9 +40,13 @@ bootstrapは次の2点だけを設定します。
 
 既存の `core.hooksPath` が別の値なら、bootstrapは上書きせず終了します。既存hookとの統合方法を決めてから、設定を手動で整理してください。
 
-Codexの `/hooks` で、`config.toml` にある3つのHook commandと信頼状態を確認してください。`untrusted` なら内容を確認して承認すると、Codexが端末上の設定パスとcommandに対応する `[hooks.state]` を `config.toml` へ追記します。このprivate個人設定ではCodexが生成したstateも履歴に含めますが、`trusted_hash` を手作業やbootstrapで生成してはいけません。同じ絶対パスへcloneすると追跡済みstateが再利用されるため、Codexを初めて起動する前に `hooks/` と `config.toml` の差分を確認してください。別のパスへcloneした場合やHook commandを変更した場合は再承認し、Codexが更新したstateをコミットしてください。
+Codexの `/hooks` で、`config.toml` にあるHook commandと信頼状態を確認してください。`untrusted` なら内容を確認して承認すると、Codexが端末上の設定パスとcommandに対応する `[hooks.state]` を `config.toml` へ追記します。このprivate個人設定ではCodexが生成したstateも履歴に含めますが、`trusted_hash` を手作業やbootstrapで生成してはいけません。同じ絶対パスへcloneすると追跡済みstateが再利用されるため、Codexを初めて起動する前に `hooks/` と `config.toml` の差分を確認してください。別のパスへcloneした場合やHook commandを変更した場合は再承認し、Codexが更新したstateをコミットしてください。
 
 Codex HookとGit pre-commitは、誤操作や秘密ファイルの混入を早めに止めるためのguardrailです。Git設定や実行環境を変更できる利用者に対するsecurity boundaryではないため、承認前の差分確認とprivate repositoryのアクセス管理は別途行ってください。
+
+## 音声通知
+
+メインの応答終了時は「完了したのだ」、質問画面を開くときは「追加の質問があるのだ」を再生します。子エージェントの終了と手動中断は無音です。音声クレジットは **VOICEVOX:ずんだもん** です。[音声テンプレートと再生成手順](hooks/sounds/zundamon/README.md)を参照してください。
 
 ## 既存のCodex Homeから復元する場合
 

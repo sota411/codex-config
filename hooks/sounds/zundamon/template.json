@@ -1,0 +1,10 @@
+{
+  "engine_version": "0.25.2",
+  "speaker": "ずんだもん",
+  "style": "ノーマル",
+  "speed_scale": 1.15,
+  "phrases": {
+    "complete": "完了したのだ。",
+    "question": "追加の質問があるのだ。"
+  }
+}
