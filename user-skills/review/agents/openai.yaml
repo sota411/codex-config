@@ -1,7 +1,7 @@
 interface:
   display_name: "Review"
-  short_description: "Reviewer–Criticで証拠付きの指摘だけを検証"
-  default_prompt: "Use $review to run a fresh-context Reviewer-Critic loop on the current diff, keep only evidence-grounded findings, and resolve accepted [must] findings before commit."
+  short_description: "差分の証拠と要件から指摘の採否を判断し、必要な修正確認に絞る"
+  default_prompt: "Use $review to review the current diff once, adjudicate findings against requirements and evidence, and report actionable issues with verification gaps."
 
 policy:
   allow_implicit_invocation: true

@@ -2,9 +2,9 @@
 
 ## Evidence Priority
 
-1. Repository-local instructions and guidelines
-2. Reachable behavior in the current diff and surrounding implementation
-3. Existing tests, command output, and documented behavior
+1. Explicit user requirements, review scope, and acceptance criteria
+2. Applicable repository-local instructions and guidelines
+3. Reachable behavior, existing tests, command output, and documented contracts
 4. Version-matched primary documentation and measurements
 
 General engineering principles and preferences may guide investigation, but they are not evidence for a finding. Never let them override a project-specific documented rule.
@@ -21,15 +21,20 @@ A final finding must show both the problem and its present impact through at lea
 
 Do not publish a finding based only on hypothetical language, an undocumented convention, a generic best practice, or missing context. Keep those as internal investigation prompts or `前提・未確認事項`.
 
-## Scope Selection
+## Scope and Proportionality Gate
 
-Review targets in this order:
+Honor the explicit target first; otherwise review `git diff --cached`, then `git diff`. Include only surrounding code needed to establish the change's impact.
 
-1. `git diff --cached`
-2. `git diff`
-3. Files, directories, or code snippets explicitly named by the user
+- In a diff review, report defects introduced or worsened by this change. Report serious pre-existing issues separately as `範囲外`; do not silently add their repair to this task. An explicitly requested wider audit can include existing issues.
+- Require meaningful correctness, performance, security, or maintainability impact and a discrete, actionable issue that the author would reasonably fix under the stated requirements.
+- Do not demand more rigor than the requirements, risk, and surrounding code warrant. This does not excuse broken contracts, security boundaries, or required validation.
+- Do not depend on unstated assumptions about deployment, supported inputs, or author intent. Name the triggering conditions and the affected reachable path. A reproducible edge case can qualify even if it is uncommon; speculation alone cannot.
+- An intentional behavior change is not itself a bug. Verify documented tradeoffs against requirements; intent does not excuse a demonstrated regression outside the intended change or an applicable safety violation.
+- For claimed effects elsewhere, identify the affected callers or consumers and explain the causal path. Generic warnings about possible breakage are not findings.
+- Ignore trivial style unless it obscures meaning or violates an applicable documented standard. If several designs satisfy the constraints, accept the author's choice.
+- Return every qualifying finding, deduplicated by root cause. Prefer no findings over padding the review with suggestions.
 
-If the user asks for a review of a PR or commit range, use that exact scope instead.
+Adapted from [Codex's review rubric](https://github.com/openai/codex/blob/52e73e3a548ae5310c7765995b9803dd538b82b0/codex-rs/prompts/templates/review/rubric.md). The local severity labels below remain authoritative for this skill.
 
 ## Severity Mapping
 
@@ -76,13 +81,9 @@ Review the diff against these categories when relevant:
 
 Only report a category when the diff actually presents evidence for it.
 
-## Independent Adversarial Review Policy
+## Independent Review and Stopping
 
-When subagents are available and allowed, use one fresh-context Reviewer and one separate fresh-context Critic. Give both the frozen artifact, acceptance criteria, applicable rules, and required surrounding context. Do not pass the author's reasoning, suspected defects, or expected verdict.
-
-Critic must classify the review as `AGREE`, `DISAGREE_EVIDENCE`, or `DISAGREE_CONCERN`. Evidence-backed disagreement causes Reviewer to revise or drop the affected finding. A concern without contradicting evidence requires Reviewer to prove the finding with verifiable evidence or drop it; it never becomes a final finding by itself.
-
-Reuse the same two threads for at most five inner rounds. Do not edit the artifact during those rounds. If the artifact changes, start both roles again in fresh context. If the fifth round does not converge, the main agent adjudicates from the cited evidence and moves unsupported points to `前提・未確認事項`.
+Use the bounded review and fix-verification procedure in [SKILL.md](../SKILL.md#bounded-independent-review). Critic validates only disputed important findings; agreement is neither required nor sufficient for completion. Do not duplicate or restart the procedure from this policy.
 
 ## Finding Revalidation
 
@@ -93,7 +94,7 @@ Before final output, the main agent must try to disprove every finding:
 - Is the finding based on a real failure mode rather than preference?
 - Is the severity consistent with the release risk?
 
-Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`. For self-review, classify each finding as `受ける`, `弱めて受ける`, or `却下する` and record the evidence for the decision.
+Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`. For self-review, record `受ける`, `弱めて受ける`, `却下する`, or `範囲外` with evidence. Separate validity, task applicability, and remedy selection; a valid finding does not make its suggested implementation mandatory.
 
 ## Hook and Memo Guard Changes
 
@@ -118,6 +119,7 @@ Every finding must include:
 - severity
 - file path and line reference
 - concrete problem statement
+- trigger conditions, expected versus actual behavior, and connection to the reviewed change
 - evidence source
 - demonstrated present impact
 - minimal fix direction
@@ -138,9 +140,4 @@ Recommended wording:
 
 ## Self-Review Completion Rule
 
-When reviewing your own implementation, the review is complete only when:
-
-- `[must]` is 0
-- accepted fixes are reflected in the diff
-- every finding has an evidence-backed `受ける`, `弱めて受ける`, or `却下する` decision
-- relevant checks were run or the exact missing check is stated
+Use [Fix Verification and Completion](../SKILL.md#fix-verification-and-completion) as the single source for pass limits and completion. A disclosed missing required check or unresolved accepted blocker means the implementation is not complete; optional suggestions do not block it.
