@@ -27,7 +27,8 @@ class NotificationSoundTest(unittest.TestCase):
                 ({"hook_event_name": "Stop", "agent_id": "child"}, None),
                 ({"hook_event_name": "PreToolUse", "tool_name": "request_user_input", "agent_type": "worker"}, None),
                 ({"hook_event_name": "SubagentStop"}, None),
-                ({"hook_event_name": "Interrupt"}, None),
+                ({"hook_event_name": "Interrupt"}, "interrupt.wav"),
+                ({"hook_event_name": "Interrupt", "agent_id": "child"}, None),
                 ({"hook_event_name": "PreToolUse", "tool_name": "Bash"}, None),
             ]
             for payload, expected in cases:

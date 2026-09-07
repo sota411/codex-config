@@ -34,7 +34,7 @@ def generate(engine_url: str) -> None:
         raise ValueError("VOICEVOX speaker/style must match exactly once")
     speaker_id = styles[0]
     audio_files = {}
-    for name in ("complete", "question"):
+    for name in ("complete", "question", "interrupt"):
         params = urlencode({"text": template["phrases"][name], "speaker": speaker_id})
         query = json.loads(request("/audio_query?" + params, b""))
         query["speedScale"] = template["speed_scale"]
@@ -61,6 +61,8 @@ def notify() -> None:
     event = payload["hook_event_name"]
     if event == "Stop":
         name = "complete"
+    elif event == "Interrupt":
+        name = "interrupt"
     elif event == "PreToolUse" and payload["tool_name"] == "request_user_input":
         name = "question"
     else:

@@ -273,7 +273,18 @@ command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_notification_sound.py"'
 async = true
 timeout = 10
 
+[[hooks.Interrupt]]
+
+[[hooks.Interrupt.hooks]]
+type = "command"
+command = '/usr/bin/python3 "$HOME/.codex/hooks/codex_notification_sound.py"'
+async = true
+timeout = 3
+
 [hooks.state]
+
+[hooks.state."/home/sota411/.codex/config.toml:interrupt:0:0"]
+trusted_hash = "sha256:eacb6dcd8a8cdf809ebe84b5294069433fc1587baa1439c6b872b2ba6e9de292"
 
 [hooks.state."/home/sota411/.codex/config.toml:pre_tool_use:0:0"]
 trusted_hash = "sha256:5a1905f360dc5ee918ff4b142ee61e46210bec5a393dbce9199d0b5fbb2cfdb0"

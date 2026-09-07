@@ -6,8 +6,9 @@
 | --- | --- | --- |
 | complete.wav | 完了したのだ。 | メインの応答終了（途中報告を含む） |
 | question.wav | 追加の質問があるのだ。 | request_user_input の質問画面を開く直前 |
+| interrupt.wav | 処理が中断されたのだ。 | メインの中断（手動中断を含む） |
 
-声はノーマル、話速は1.15倍、音声の振幅は標準の1.4倍（約+2.9 dB）です。子エージェントと手動中断は無音です。返信本文の質問判定は行いません。再生時は `paplay` だけを使い、VOICEVOXは起動しません。
+声はノーマル、話速は1.15倍、音声の振幅は標準の1.4倍（約+2.9 dB）です。子エージェントは無音です。返信本文の質問判定は行いません。再生時は `paplay` だけを使い、VOICEVOXは起動しません。中断フックのタイムアウトは3秒です。プロセスの強制終了は通知対象外です。
 
 ## 再生成
 
@@ -26,6 +27,7 @@ python3 "$HOME/.codex/hooks/codex_notification_sound.py" --generate
 docker stop codex-notification-voicevox
 paplay "$HOME/.codex/hooks/sounds/zundamon/complete.wav"
 paplay "$HOME/.codex/hooks/sounds/zundamon/question.wav"
+paplay "$HOME/.codex/hooks/sounds/zundamon/interrupt.wav"
 ```
 
 別のポートを使う場合は `--engine-url http://127.0.0.1:ポート番号` を指定できます。
