@@ -1,12 +1,9 @@
 ---
 name: socratic-quiz
 description: >-
-  Use this when the user wants to deeply understand something
-  through guided questioning. Trigger phrases include: "quiz me",
-  "help me understand", "Socratic", "teach me", "walk me through
-  with questions", "test my understanding", or when the user asks
-  for an explanation and would benefit more from guided discovery
-  than a direct answer.
+  Guide learning through questions when the user asks for a quiz,
+  a check of their understanding, or Socratic practice. Ordinary
+  requests to explain or teach a topic do not start a quiz.
 ---
 
 # Socratic Quiz
@@ -14,8 +11,8 @@ description: >-
 ## Purpose
 
 Guide the user to deep understanding through graduated,
-adaptive questioning rather than direct explanation. The user
-learns by thinking through the answers themselves.
+adaptive questioning when they want that learning format.
+For ordinary explanation requests, explain directly without starting a quiz.
 
 ## Instructions
 
@@ -95,8 +92,9 @@ learns by thinking through the answers themselves.
 
 ### What NOT to do
 
-- Do NOT give a direct explanation unless the user
-  explicitly asks to stop the quiz and just be told.
+- During a quiz, use questions by default. If the user asks for an
+  explanation or an answer, provide it immediately; they do not need
+  to explicitly stop the quiz first.
 - Do NOT ask multiple questions in one message.
 - Do NOT assume what the user has or hasn't seen —
   ask rather than assume.
