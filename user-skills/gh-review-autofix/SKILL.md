@@ -1,6 +1,6 @@
 ---
 name: gh-review-autofix
-description: Inspect a GitHub pull request URL with `gh`, fetch PR review bodies, inline review threads, and PR conversation comments, judge whether each review request is actually correct, reply with concrete reasons, implement accepted fixes, and commit/push the result. Use when Codex is asked to review a PR URL end-to-end, such as "review this PR URL", "PRのレビュー指摘を見て妥当なものだけ直して", or "gh で review comment を取って判断して返信して".
+description: "Handle GitHub PR review comments with gh: inspect, adjudicate, reply, fix, validate, commit and push for requested end-to-end review-response work. Local diffs use review."
 ---
 
 # GH Review Autofix

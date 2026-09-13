@@ -1,6 +1,6 @@
 ---
 name: pdf-latex
-description: Create non-official Tetsuryoku-style Japanese study handout or unit-based problem-set PDFs with LuaLaTeX, including worked examples, practice problems, one-point checkpoints, teacher/student dialogue explanations, and optional diagram-design figures. Use only when the user explicitly invokes `$pdf-latex` or clearly asks to use this skill for a JIS B5, boxed-problem, reference-book-like LaTeX handout PDF; do not implicitly apply it to ordinary LaTeX, generic PDFs, resumes, reports, or documents.
+description: "Create non-official Tetsuryoku-style JIS B5 study handouts with LuaLaTeX only when $pdf-latex or this specific skill is explicitly requested. Not for generic PDFs, LaTeX, resumes, or reports."
 ---
 
 # PDF LaTeX

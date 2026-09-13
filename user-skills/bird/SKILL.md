@@ -1,6 +1,6 @@
 ---
 name: bird
-description: Use the bird CLI for read-only X/Twitter search when web searches, latest-news checks, reputation checks, outage checks, social reactions, or explicit X/Twitter searches need current social context.
+description: "Search X/Twitter with the read-only bird CLI when the user requests X search or current social context is needed for news, reactions, reputation, or outages."
 homepage: https://bird.fast
 metadata:
   openclaw:

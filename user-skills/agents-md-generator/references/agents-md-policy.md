@@ -1,5 +1,15 @@
 # AGENTS.md Policy
 
+## Personal Guidance
+
+For `~/.codex/AGENTS.md`, keep durable user preferences, evidence and quality requirements, authorization boundaries, completion criteria, and pointers to specialized skills. Preserve necessary safety and operational invariants across models; a model upgrade alone is not evidence that a rule can be deleted.
+
+Avoid repository-specific commands, full tool catalogs, fixed document-reading lists, and procedures already maintained in a skill. Explicit user choices prevail over a generic simplification recommendation.
+
+## Repository Guidance
+
+The remaining include/exclude rules concern repository-local files.
+
 ## Include
 
 - Repository purpose and important directory layout when it changes day-to-day work.
@@ -12,18 +22,18 @@
 
 ## Exclude
 
-- Global Codex rules that already live in `~/.codex/AGENTS.md`.
+- Global Codex rules that already live in `~/.codex/AGENTS.md`, unless a narrower repository override is necessary.
 - Long examples that belong in a skill, README, or docs page.
 - Tool installation manuals unless the repository itself requires a nonstandard setup.
 - Aspirational best practices with no local evidence.
-- Old Claude global configuration. Read repository-local `CLAUDE.md` only as project guidance when no `AGENTS.md` equivalent exists.
+- Old Claude global configuration. Repository-local `CLAUDE.md` can supply relevant project facts; do not duplicate facts already covered by `AGENTS.md`.
 
 ## Conflict Handling
 
 - Prefer `AGENTS.md` closest to the edited file.
 - Prefer documented repository commands over inferred commands.
 - Prefer current manifests and config files over stale prose.
-- If two local docs conflict and neither is clearly more specific, do not guess. Ask for the intended rule or record the conflict in the output.
+- If current evidence cannot resolve a material conflict, ask for the intended rule. Record non-blocking assumptions and continue independent work.
 
 ## Recommended Shape
 
@@ -54,5 +64,6 @@ Before finishing, verify these facts from the repository:
 
 - Mentioned files and directories exist.
 - Commands match package scripts, Makefile targets, task files, or documented tooling.
-- Generated instructions do not duplicate global Codex guidance.
+- Repository instructions do not duplicate global guidance; personal instructions do not absorb repository-specific procedures.
+- Every removal has a complete replacement or an evidence-backed reason, while unique user requirements remain.
 - The file is concise enough to be read every turn.

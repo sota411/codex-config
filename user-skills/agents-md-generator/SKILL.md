@@ -1,28 +1,22 @@
 ---
 name: agents-md-generator
-description: Create or update repository-level AGENTS.md files for Codex. Use when the user asks to generate AGENTS.md, refresh repository instructions, consolidate local coding rules, remove duplicated global instructions, or convert repeated repository guidance into concise Codex rules.
+description: Codexの個人共通・リポジトリ固有のAGENTS.mdを作成・更新し、適用範囲と根拠を保って重複や古い指示を整理する依頼に使う。
 ---
 
 # AGENTS.md Generator
 
-Use this skill to create or update repository-local `AGENTS.md` files. Keep the result short, concrete, and specific to the repository.
+Keep instructions short and specific to the scope the user requested.
 
 ## Workflow
 
-1. Read existing repository guidance first.
-   Check `AGENTS.md`, `CLAUDE.md`, `docs/`, `README.md`, package manifests, test configs, and obvious contribution docs.
-2. Identify what belongs in the repository file.
-   Keep repo-specific commands, architecture, tests, style rules, security constraints, and release workflow. Do not copy global Codex rules unless the repository needs a narrower override.
-3. Read [references/agents-md-policy.md](references/agents-md-policy.md) before drafting or editing.
-4. Write `AGENTS.md` in UTF-8.
-   Prefer concise Japanese unless the repository already uses English instructions.
-5. Verify the result.
-   Confirm that paths, commands, package managers, and referenced docs actually exist.
+1. Identify the target from the request and existing files. Distinguish personal guidance (`~/.codex/AGENTS.md`) from repository-local instructions. Ask only if multiple plausible targets remain.
+2. Read the existing target and relevant instructions. For repository work, verify only the commands, manifests, architecture, tests, or release documentation needed by the requested change. Use history as evidence of preferences, not as authority to restore superseded rules.
+3. Use [agents-md-policy.md](references/agents-md-policy.md) to decide what belongs at that scope. Keep global preferences in personal guidance and repository facts in repository guidance.
+4. Write concise UTF-8 instructions, normally in Japanese. State outcomes, decision boundaries, and completion criteria. Route detailed procedures to the existing skill or documentation that owns them.
+5. Verify referenced paths and commands. For removed or moved instructions, identify the complete replacement or the evidence that makes the rule unnecessary. Do not remove a unique requirement merely because another instruction partly overlaps.
 
-## Rules
+## Boundaries
 
-- Prefer existing local facts over generic best practices.
-- Keep instructions action-oriented and testable.
-- Delegate detailed procedures to skills or docs instead of embedding long runbooks.
-- If local rules conflict, keep the more specific rule and state the conflict in the output.
-- Do not mention Claude-specific global configuration when the task is scoped to Codex. Repository-local `CLAUDE.md` may be read only as project guidance.
+Preserve explicit user requirements and existing authorization. Confirmations belong to unresolved decisions or unauthorized consequential actions, not every reversible step. Do not replace a requested deliverable with a plan or memo.
+
+When scoped to Codex, keep Claude configuration unchanged. Read Claude history only when requested, and repository-local `CLAUDE.md` when relevant as project guidance. Resolve conflicts using current, applicable evidence and report unresolved material differences.

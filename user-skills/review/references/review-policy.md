@@ -81,9 +81,28 @@ Review the diff against these categories when relevant:
 
 Only report a category when the diff actually presents evidence for it.
 
-## Independent Review and Stopping
+## Bounded Independent Review
 
-Use the bounded review and fix-verification procedure in [SKILL.md](../SKILL.md#bounded-independent-review). Critic validates only disputed important findings; agreement is neither required nor sufficient for completion. Do not duplicate or restart the procedure from this policy.
+1. Freeze the review snapshot and start one `reviewer_deep` as Reviewer with `fork_turns="none"`.
+   Give it the diff and base, requirements, non-goals, acceptance criteria, supported environments, applicable rules, necessary surrounding code, and reproduction commands. Include documented intentional tradeoffs as claims to verify, not proof of correctness. Do not suggest defects, fixes, or an expected verdict.
+2. Reviewer returns actionable candidates with stable IDs, severity, `file:line`, trigger conditions, evidence, current impact, and a minimal fix direction. No finding quota; return no findings when none qualify.
+3. The main agent adjudicates each candidate using the revalidation rules below. Reviewer agreement is not evidence and does not authorize edits.
+4. Only for an important finding whose validity or applicability remains disputed, use one separate `reviewer_deep` as Critic with `fork_turns="none"`. Give it the disputed IDs, snapshot, requirements, and evidence from both sides. Ask for one finding-specific verdict: `成立`, `不成立`, or `未確認`, with evidence or the exact missing check. Do not commission another broad search for missed issues.
+5. The main agent decides after that response; do not run a Reviewer-Critic dialogue until consensus. An incidentally discovered serious issue must still be reported with evidence, but does not automatically restart review.
+
+Use the named profile for either role; do not silently substitute a default agent. If subagents are unavailable, apply the same evidence gate locally and state that independent review was not run. Only the main agent edits artifacts. A changed snapshot invalidates conclusions for affected paths, not all unaffected evidence.
+
+## Fix Verification and Completion
+
+For review-only requests, report the adjudicated findings without editing code.
+
+For implementation work, default to one independent review plus at most one focused fix-verification pass:
+
+1. Fix accepted `[must]` findings with the smallest appropriate remedy and run relevant checks. `[recommend]` and `[nits]` do not block completion or require automatic fixes.
+2. Verify the fix delta and directly affected paths, preferably using the same Reviewer when independent verification is needed. Supply the new snapshot and prior decisions; do not repeat unchanged checks or reopen rejected findings without new evidence.
+3. A full re-review requires a concrete new major risk or expanded impact, with its scope and stopping condition stated before starting. Editing alone, a no-finding result, and waiting for another agent are not reasons to restart review or rerun passing tests.
+4. At the default pass limit, the main agent adjudicates remaining evidence instead of launching more automatic rounds. Resolve proven blockers or state the exact blocking condition; reaching the limit is not approval. Ask the user only when a requirement, safety decision, or authorization cannot be resolved from available evidence.
+5. Finish when acceptance criteria and required checks are satisfied and accepted blockers are resolved. Missing required verification prevents a completion claim; disclose optional verification gaps. Do not require every reviewer to agree.
 
 ## Finding Revalidation
 
@@ -94,7 +113,7 @@ Before final output, the main agent must try to disprove every finding:
 - Is the finding based on a real failure mode rather than preference?
 - Is the severity consistent with the release risk?
 
-Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`. For self-review, record `受ける`, `弱めて受ける`, `却下する`, or `範囲外` with evidence. Separate validity, task applicability, and remedy selection; a valid finding does not make its suggested implementation mandatory.
+Lower severity only when evidence demonstrates lower release risk. Remove findings that fail this verification. Keep uncertainty in `前提・未確認事項`. For self-review, record `受ける`, `弱めて受ける`, `却下する`, or `範囲外` with evidence. Separate validity, task applicability, and remedy selection; a valid finding does not make its suggested implementation mandatory.
 
 ## Hook and Memo Guard Changes
 
@@ -140,4 +159,4 @@ Recommended wording:
 
 ## Self-Review Completion Rule
 
-Use [Fix Verification and Completion](../SKILL.md#fix-verification-and-completion) as the single source for pass limits and completion. A disclosed missing required check or unresolved accepted blocker means the implementation is not complete; optional suggestions do not block it.
+Use [Fix Verification and Completion](#fix-verification-and-completion) as the single source for pass limits and completion. A disclosed missing required check or unresolved accepted blocker means the implementation is not complete; optional suggestions do not block it.
